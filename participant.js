@@ -76,8 +76,9 @@ function autoRegisterParticipant() {
     const existingParticipant = participants.find(p => p.deviceId === deviceId);
     
     if (existingParticipant) {
-        // 이미 참여한 디바이스
-        showAlreadyJoinedMessage(existingParticipant);
+        // 이미 참여한 디바이스 - 바로 퀴즈로 이동
+        console.log('기존 참여자 감지:', existingParticipant.anonymousId);
+        goToQuizDirectly();
     } else {
         // 새로운 참여자 자동 등록
         const participant = {
@@ -131,8 +132,8 @@ function autoRegisterParticipant() {
             console.error('참여자 저장 실패:', error);
         }
         
-        // 등록 완료 메시지 표시
-        showWelcomeMessage(participant);
+        // 등록 완료 후 바로 퀴즈로 이동
+        goToQuizDirectly();
     }
 }
 
@@ -190,6 +191,37 @@ function goToQuiz() {
     
     const eventName = getEventNameFromUrl();
     window.location.href = 'quiz.html?event=' + encodeURIComponent(eventName);
+}
+
+function goToQuizDirectly() {
+    // 로딩 화면 숨기기
+    document.getElementById('autoRegister').style.display = 'none';
+    
+    // 쿠폰 사용 여부 확인
+    const deviceId = generateDeviceId();
+    const hasUsedCoupon = checkIfCouponUsed(deviceId);
+    
+    if (hasUsedCoupon) {
+        // 쿠폰 사용자는 완료 메시지 표시
+        document.body.innerHTML = `
+            <div class="container">
+                <div style="text-align: center; padding: 40px 20px;">
+                    <h1>🎉 퀴즈 완료!</h1>
+                    <p style="font-size: 18px; margin: 20px 0;">이미 퀴즈를 완료하고 쿠폰을 사용하셨습니다.</p>
+                    <p style="color: #666;">추가 참여는 불가능합니다.</p>
+                </div>
+            </div>
+        `;
+        return;
+    }
+    
+    console.log('🚀 바로 퀴즈로 이동');
+    const eventName = getEventNameFromUrl();
+    
+    // 약간의 지연 후 퀴즈로 이동 (등록 완료 로그 확인용)
+    setTimeout(() => {
+        window.location.href = 'quiz.html?event=' + encodeURIComponent(eventName);
+    }, 500);
 }
 
 function showAlreadyJoinedMessage(participant) {
