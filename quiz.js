@@ -37,6 +37,18 @@ function getEventNameFromUrl() {
 }
 
 function startQuiz() {
+    // 쿠폰 사용 여부 확인
+    const deviceId = generateDeviceId();
+    const hasUsedCoupon = checkIfCouponUsed(deviceId);
+    
+    if (hasUsedCoupon) {
+        alert('이미 퀴즈를 완료하고 쿠폰을 사용하셨습니다.\\n추가 참여는 불가능합니다.');
+        // 참여자 페이지로 돌아가기
+        const eventName = getEventNameFromUrl();
+        window.location.href = 'participant.html?event=' + encodeURIComponent(eventName);
+        return;
+    }
+    
     document.getElementById('quizStart').style.display = 'none';
     document.getElementById('quizProgress').style.display = 'block';
     
@@ -125,10 +137,27 @@ function retryQuiz() {
     document.getElementById('quizStart').style.display = 'block';
 }
 
+function checkIfCouponUsed(deviceId) {
+    // 해당 디바이스로 발급된 쿠폰 중 사용된 것이 있는지 확인
+    const coupons = JSON.parse(localStorage.getItem('coupons')) || [];
+    const deviceCoupons = coupons.filter(c => c.deviceId === deviceId);
+    
+    // 사용된 쿠폰이 하나라도 있으면 true
+    return deviceCoupons.some(c => c.used === true);
+}
+
 function getCoupon() {
     // 디바이스 ID 생성 (participant.js와 동일한 방식)
     const deviceId = generateDeviceId();
     const eventName = getEventNameFromUrl();
+    
+    // 쿠폰 사용 여부 재확인 (혹시 모를 동시성 문제 방지)
+    const hasUsedCoupon = checkIfCouponUsed(deviceId);
+    if (hasUsedCoupon) {
+        alert('이미 쿠폰을 사용하셨습니다.\\n추가 쿠폰 발급은 불가능합니다.');
+        window.location.href = 'participant.html?event=' + encodeURIComponent(eventName);
+        return;
+    }
     
     // 쿠폰 정보 생성
     const coupon = {
@@ -181,4 +210,14 @@ document.addEventListener('DOMContentLoaded', function() {
     const eventName = getEventNameFromUrl();
     document.getElementById('quizTitle').textContent = eventName + ' 퀴즈';
     document.title = eventName + ' 퀴즈';
+    
+    // 페이지 로드 시 쿠폰 사용 여부 확인
+    const deviceId = generateDeviceId();
+    const hasUsedCoupon = checkIfCouponUsed(deviceId);
+    
+    if (hasUsedCoupon) {
+        // 쿠폰 사용 후 접근 시 알림 후 참여자 페이지로 리다이렉트
+        alert('이미 퀴즈를 완료하고 쿠폰을 사용하셨습니다.\\n추가 참여는 불가능합니다.');
+        window.location.href = 'participant.html?event=' + encodeURIComponent(eventName);
+    }
 });
