@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>모바일 테스트 페이지</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        .test-section {
+            background: #f7fafc;
+            padding: 20px;
+            margin: 15px 0;
+            border-radius: 12px;
+            border-left: 4px solid #667eea;
+        }
+        
+        .test-result {
+            background: #e6fffa;
+            border: 1px solid #81e6d9;
+            padding: 10px;
+            border-radius: 8px;
+            margin: 10px 0;
+            font-family: monospace;
+            font-size: 14px;
+        }
+        
+        .qr-test-area {
+            text-align: center;
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            margin: 15px 0;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        
+        .status-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+        
+        .status-good { background: #48bb78; }
+        .status-warn { background: #ed8936; }
+        .status-error { background: #e53e3e; }
+        
+        .device-info {
+            background: #edf2f7;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📱 모바일 테스트 센터</h1>
+        
+        <div class="test-section">
+            <h2>🔍 기기 정보</h2>
+            <div class="device-info">
+                <p><strong>화면 크기:</strong> <span id="screenSize">-</span></p>
+                <p><strong>사용자 에이전트:</strong> <span id="userAgent">-</span></p>
+                <p><strong>터치 지원:</strong> <span id="touchSupport">-</span></p>
+                <p><strong>진동 지원:</strong> <span id="vibrationSupport">-</span></p>
+                <p><strong>카메라 접근:</strong> <span id="cameraSupport">-</span></p>
+            </div>
+        </div>
+        
+        <div class="test-section">
+            <h2>🎯 터치 테스트</h2>
+            <button onclick="testTouch()" class="test-btn" style="width: 100%; margin: 10px 0;">터치 테스트 (진동 + 피드백)</button>
+            <div id="touchResult" class="test-result" style="display: none;"></div>
+        </div>
+        
+        <div class="test-section">
+            <h2>📊 QR 코드 테스트</h2>
+            <div class="qr-test-area">
+                <p>아래 QR 코드를 다른 모바일 기기로 스캔해보세요</p>
+                <div id="testQRCode"></div>
+                <p id="testUrl" style="word-break: break-all; color: #667eea; margin-top: 10px;"></p>
+            </div>
+        </div>
+        
+        <div class="test-section">
+            <h2>🔗 직접 링크 테스트</h2>
+            <p>다른 기기에서 직접 접속할 수 있는 링크들:</p>
+            <div style="margin: 15px 0;">
+                <a href="admin.html" target="_blank" class="test-link">관리자 페이지</a><br>
+                <a href="participant.html" target="_blank" class="test-link">참여자 페이지</a><br>
+                <a href="quiz.html" target="_blank" class="test-link">퀴즈 페이지</a><br>
+            </div>
+        </div>
+        
+        <div class="test-section">
+            <h2>📱 기기별 호환성</h2>
+            <div id="compatibilityStatus">
+                <p><span class="status-indicator" id="iosStatus"></span>iOS Safari: <span id="iosText">확인 중...</span></p>
+                <p><span class="status-indicator" id="androidStatus"></span>Android Chrome: <span id="androidText">확인 중...</span></p>
+                <p><span class="status-indicator" id="mobileStatus"></span>모바일 최적화: <span id="mobileText">확인 중...</span></p>
+            </div>
+        </div>
+        
+        <div class="test-section">
+            <h2>🚀 빠른 테스트</h2>
+            <p>현재 기기에서 바로 테스트:</p>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 15px;">
+                <button onclick="testParticipant()" class="test-btn">참여 테스트</button>
+                <button onclick="testQuiz()" class="test-btn">퀴즈 테스트</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://unpkg.com/qrcode@1.5.3/build/qrcode.min.js"></script>
+    <script src="mobile-test.js"></script>
+    
+    <style>
+        .test-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: transform 0.2s ease;
+        }
+        
+        .test-btn:hover {
+            transform: translateY(-2px);
+        }
+        
+        .test-link {
+            display: inline-block;
+            background: #48bb78;
+            color: white;
+            padding: 10px 15px;
+            border-radius: 6px;
+            text-decoration: none;
+            margin: 5px 0;
+            transition: background 0.2s ease;
+        }
+        
+        .test-link:hover {
+            background: #38a169;
+        }
+    </style>
+</body>
+</html>
