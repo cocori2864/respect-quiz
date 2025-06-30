@@ -139,6 +139,9 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // 5초마다 쿠폰 상태 확인
     setInterval(checkCouponStatus, 5000);
+    
+    // 뒤로가기 방지 (쿠폰 사용 후)
+    preventBackNavigation();
 });
 
 // 스토리지 변경 감지 (다른 탭에서 쿠폰 상태 변경 시)
@@ -147,3 +150,30 @@ window.addEventListener('storage', function(e) {
         checkCouponStatus();
     }
 });
+
+// 뒤로가기 방지 함수
+function preventBackNavigation() {
+    // 히스토리 상태 추가
+    if (window.history && window.history.pushState) {
+        window.history.pushState('couponPage', null, window.location.href);
+        
+        window.addEventListener('popstate', function(event) {
+            // 쿠폰이 사용된 경우 뒤로가기 차단
+            if (currentCoupon && currentCoupon.used) {
+                window.history.pushState('couponPage', null, window.location.href);
+                alert('쿠폰 사용이 완료되어 이전 페이지로 돌아갈 수 없습니다.\\n퀴즈 참여가 완료되었습니다.');
+                return false;
+            }
+        });
+    }
+    
+    // beforeunload 이벤트로 페이지 떠나기 방지
+    window.addEventListener('beforeunload', function(event) {
+        if (currentCoupon && currentCoupon.used) {
+            const message = '쿠폰 사용이 완료되어 페이지를 떠날 수 없습니다.';
+            event.preventDefault();
+            event.returnValue = message;
+            return message;
+        }
+    });
+}
