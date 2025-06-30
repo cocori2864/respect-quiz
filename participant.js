@@ -1,4 +1,7 @@
-// 익명 참여자 페이지 JavaScript
+/**
+ * 참여자 등록 JavaScript
+ * 기능: 디바이스 고유ID 생성, 익명 참여 등록, 중복 참여 방지
+ */
 function getEventNameFromUrl() {
     const urlParams = new URLSearchParams(window.location.search);
     return urlParams.get('event') || localStorage.getItem('eventName') || '행사';

@@ -1,6 +1,11 @@
-// 관리자 페이지 JavaScript
+/**
+ * 관리자 대시보드 JavaScript
+ * 기능: QR 코드 생성, 참여자 통계 모니터링, 실시간 데이터 업데이트
+ */
+
+// 전역 변수
 let participants = JSON.parse(localStorage.getItem('participants')) || [];
-let eventName = localStorage.getItem('eventName') || '우리 행사';
+let eventName = localStorage.getItem('eventName') || '서울아산병원 소통 감수성 퀴즈';
 
 function generateQR() {
     const eventNameInput = document.getElementById('eventName').value;

@@ -1,4 +1,7 @@
-// 퀴즈 JavaScript
+/**
+ * 소통 감수성 퀴즈 JavaScript
+ * 기능: 서울아산병원 직원 존중 관련 퀴즈, 점수 계산, 쿠폰 발급
+ */
 const quizQuestions = [
     {
         question: "동료가 업무상 실수를 했을 때, 가장 적절한 소통 방법은?",

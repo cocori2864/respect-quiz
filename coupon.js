@@ -1,4 +1,7 @@
-// 쿠폰 JavaScript
+/**
+ * 쿠폰 관리 JavaScript
+ * 기능: 쿠폰 표시, 관리자 사용 처리, 보안 강화 (백스페이스 방지)
+ */
 let currentCoupon = null;
 
 function getUrlParams() {
