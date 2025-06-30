@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>쿠폰</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <h1 id="couponTitle">🎉 이벤트 쿠폰 획득!</h1>
+        
+        <div id="couponCard" class="coupon-usage-card">
+            <div class="coupon-header">
+                <div class="coupon-icon">🎟️</div>
+                <h2 id="eventCouponName">이벤트 쿠폰</h2>
+                <div class="coupon-status-badge" id="couponStatus">사용 가능</div>
+            </div>
+            
+            <div class="coupon-content">
+                <div class="achievement-info">
+                    <h3>🏆 퀴즈 성과</h3>
+                    <div class="score-display">
+                        <span id="couponScore">0</span>점 달성
+                    </div>
+                    <p class="issue-time">발급: <span id="issueTime">-</span></p>
+                </div>
+                
+                <div class="usage-instructions">
+                    <h3>📱 쿠폰 사용 방법</h3>
+                    <p>이 화면을 관리자에게 보여주세요</p>
+                    <p>관리자가 확인 후 사용 처리됩니다</p>
+                </div>
+            </div>
+            
+            <div class="admin-use-section">
+                <button onclick="requestAdminUse()" class="admin-use-btn" id="adminUseBtn">
+                    🔸 관리자용: 쿠폰 사용 처리
+                </button>
+                <p class="admin-warning">⚠️ 관리자만 터치하세요</p>
+            </div>
+        </div>
+        
+        <div id="usedCoupon" class="used-coupon" style="display: none;">
+            <div class="used-header">
+                <div class="used-icon">✅</div>
+                <h2>쿠폰 사용 완료</h2>
+            </div>
+            <div class="used-content">
+                <p>이 쿠폰은 사용되었습니다</p>
+                <p class="used-time">사용 시간: <span id="usedTime">-</span></p>
+            </div>
+        </div>
+        
+        <div class="coupon-actions">
+            <button onclick="goToQuiz()" class="back-btn">퀴즈로 돌아가기</button>
+        </div>
+    </div>
+
+    <script src="https://unpkg.com/qrcode@1.5.3/build/qrcode.min.js"></script>
+    <script src="coupon.js"></script>
+</body>
+</html>

@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>행사 참여</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <h1 id="eventTitle">행사 참여</h1>
+        
+        <div id="autoRegister" class="auto-register">
+            <h2>참여 확인 중...</h2>
+            <div class="loading-spinner"></div>
+            <p>잠시만 기다려주세요</p>
+        </div>
+
+        <div id="welcomeMessage" class="welcome-message" style="display: none;">
+            <h2>참여 완료!</h2>
+            <p>익명으로 참여가 확인되었습니다.</p>
+            <div class="participant-info">
+                <p><strong>참여 시간:</strong> <span id="registrationTime"></span></p>
+                <p><strong>고유 ID:</strong> <span id="anonymousId"></span></p>
+            </div>
+            <div class="quiz-link">
+                <button onclick="goToQuiz()" class="quiz-btn">퀴즈에 도전하기 🧠</button>
+            </div>
+        </div>
+
+        <div id="alreadyJoined" class="already-joined" style="display: none;">
+            <h2>이미 참여하셨습니다</h2>
+            <p>중복 참여는 불가능합니다.</p>
+            <div class="participant-info">
+                <p><strong>최초 참여 시간:</strong> <span id="firstJoinTime"></span></p>
+            </div>
+            <div class="quiz-link">
+                <button onclick="goToQuiz()" class="quiz-btn">퀴즈에 도전하기 🧠</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="participant.js"></script>
+</body>
+</html>

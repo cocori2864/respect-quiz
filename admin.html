@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>행사 관리자</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <h1>행사 관리자 페이지</h1>
+        
+        <div class="admin-section">
+            <h2>행사 설정</h2>
+            <input type="text" id="eventName" placeholder="행사명을 입력하세요" value="우리 행사">
+            <button onclick="generateQR()">QR 코드 생성</button>
+        </div>
+
+        <div class="qr-section">
+            <h2>참여자 접속용 QR 코드</h2>
+            <div id="qrcode"></div>
+            <p id="participantUrl"></p>
+        </div>
+
+        <div class="stats-section">
+            <h2>참여 현황</h2>
+            <div class="stats-grid">
+                <div class="stat-card main-stat">
+                    <h3>총 참여자 수</h3>
+                    <div class="stat-number" id="totalParticipants">0</div>
+                    <p class="stat-desc">익명으로 참여한 총 인원</p>
+                </div>
+                <div class="stat-card">
+                    <h3>최근 1시간</h3>
+                    <div class="stat-number recent" id="recentParticipants">0</div>
+                    <p class="stat-desc">최근 1시간 내 참여</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="admin.js"></script>
+</body>
+</html>
