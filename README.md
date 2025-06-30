@@ -49,11 +49,6 @@ respect/
 3. Settings → Pages → Source: main branch
 4. 약 5분 후 `https://username.github.io/repository/` 접속
 
-### Netlify
-1. 프로젝트 폴더를 ZIP으로 압축
-2. [Netlify](https://netlify.com) 접속
-3. 드래그 앤 드롭으로 배포
-4. 즉시 사용 가능한 URL 제공
 
 ## 🎨 기술 스택
 
