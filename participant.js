@@ -13,7 +13,24 @@ function getAccessSource() {
 }
 
 function isMobileDevice() {
-    return /Mobile|Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    // 더 정확한 모바일 감지
+    const mobileUA = /Mobile|Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini|webOS|Windows Phone/i.test(navigator.userAgent);
+    const touchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+    const smallScreen = window.screen && (window.screen.width <= 768 || window.screen.height <= 768);
+    
+    const isMobile = mobileUA || (touchDevice && smallScreen);
+    
+    // 상세 로깅
+    console.log('📱 모바일 감지 상세:', {
+        userAgent: navigator.userAgent,
+        mobileUA: mobileUA,
+        touchDevice: touchDevice,
+        screenSize: window.screen ? `${window.screen.width}x${window.screen.height}` : 'unknown',
+        smallScreen: smallScreen,
+        finalResult: isMobile
+    });
+    
+    return isMobile;
 }
 
 function generateDeviceId() {
@@ -96,26 +113,68 @@ function autoRegisterParticipant() {
         participants.push(participant);
         
         // 확실한 저장을 위해 여러 번 시도
-        try {
-            localStorage.setItem('participants', JSON.stringify(participants));
-            console.log('참여자 등록 완료:', participant.anonymousId, '총', participants.length, '명');
-            console.log('모바일 접속:', participant.isMobile, '접속 경로:', participant.accessSource);
-            
+        let saveAttempts = 0;
+        const maxAttempts = 3;
+        
+        function attemptSave() {
+            try {
+                saveAttempts++;
+                
+                // localStorage 용량 확인
+                const testData = JSON.stringify(participants);
+                if (testData.length > 5000000) { // 5MB 제한
+                    console.warn('⚠️ localStorage 데이터가 너무 큼:', testData.length, 'bytes');
+                }
+                
+                localStorage.setItem('participants', testData);
+                
+                // 저장 검증
+                const savedData = localStorage.getItem('participants');
+                if (!savedData || savedData !== testData) {
+                    throw new Error('저장 검증 실패');
+                }
+                
+                console.log('✅ 참여자 등록 완료:', participant.anonymousId, '총', participants.length, '명');
+                console.log('📱 모바일 접속:', participant.isMobile, '접속 경로:', participant.accessSource);
+                
+                // 저장 성공 시 동기화 처리
+                handleSuccessfulSave();
+                
+            } catch (error) {
+                console.error(`❌ 저장 시도 ${saveAttempts}/${maxAttempts} 실패:`, error.message);
+                
+                if (saveAttempts < maxAttempts) {
+                    // 재시도 전 약간의 지연
+                    setTimeout(() => {
+                        console.log(`🔄 저장 재시도 ${saveAttempts + 1}/${maxAttempts}`);
+                        attemptSave();
+                    }, 100 * saveAttempts);
+                } else {
+                    console.error('💥 모든 저장 시도 실패');
+                    // 실패해도 기본 흐름은 계속 진행
+                    handleSuccessfulSave();
+                }
+            }
+        }
+        
+        function handleSuccessfulSave() {
             // 모바일 QR 접속 특별 로깅
             if (participant.isMobile && participant.accessSource === 'qr') {
                 console.log('📱 QR 모바일 접속 감지:', participant.anonymousId);
             }
             
-            // 저장 확인 및 강제 동기화
+            // 저장 확인
             const savedData = localStorage.getItem('participants');
             const parsedData = JSON.parse(savedData);
-            console.log('✅ 저장 확인:', parsedData.length, '명');
+            console.log('💾 저장 검증 완료:', parsedData.length, '명');
             
-            // 관리자 페이지 실시간 업데이트 트리거
+            // 🚀 다중 동기화 시스템 활성화
+            
+            // 1. 기본 업데이트 트리거
             localStorage.setItem('participantUpdate', Date.now().toString());
             localStorage.removeItem('participantUpdate');
             
-            // CustomEvent 발생으로 관리자 페이지에 알림
+            // 2. 부모 창 메시지 (QR 스캔 앱에서 온 경우)
             if (window.opener) {
                 try {
                     window.opener.postMessage({
@@ -123,14 +182,48 @@ function autoRegisterParticipant() {
                         participant: participant,
                         total: parsedData.length
                     }, '*');
+                    console.log('📨 부모 창 메시지 전송 성공');
                 } catch (e) {
-                    console.log('부모 창 통신 실패 (정상적인 상황일 수 있음)');
+                    console.log('부모 창 통신 실패:', e.message);
                 }
             }
             
-        } catch (error) {
-            console.error('참여자 저장 실패:', error);
+            // 3. 강제 Storage 이벤트 (모든 윈도우에 전파)
+            try {
+                window.dispatchEvent(new StorageEvent('storage', {
+                    key: 'participants',
+                    oldValue: JSON.stringify(participants.slice(0, -1)),
+                    newValue: JSON.stringify(participants),
+                    url: window.location.href,
+                    storageArea: localStorage
+                }));
+                console.log('📡 강제 Storage 이벤트 발생');
+            } catch (e) {
+                console.log('Storage 이벤트 발생 실패:', e.message);
+            }
+            
+            // 4. 특별 추적 키 (폴링 시스템용)
+            localStorage.setItem('lastParticipantAdded', JSON.stringify({
+                participant: participant,
+                timestamp: Date.now(),
+                total: parsedData.length,
+                isMobile: participant.isMobile,
+                accessSource: participant.accessSource
+            }));
+            
+            // 5. 최종 동기화 보장
+            setTimeout(() => {
+                try {
+                    localStorage.setItem('syncComplete', Date.now().toString());
+                    console.log('🔄 동기화 완료 신호 전송');
+                } catch (e) {
+                    console.log('동기화 완료 신호 실패:', e.message);
+                }
+            }, 100);
         }
+        
+        // 저장 시도 시작
+        attemptSave();
         
         // 등록 완료 후 바로 퀴즈로 이동
         goToQuizDirectly();
@@ -218,10 +311,28 @@ function goToQuizDirectly() {
     console.log('🚀 바로 퀴즈로 이동');
     const eventName = getEventNameFromUrl();
     
-    // 약간의 지연 후 퀴즈로 이동 (등록 완료 로그 확인용)
+    // 충분한 지연 후 퀴즈로 이동 (localStorage 저장 및 이벤트 전송 완료 대기)
     setTimeout(() => {
+        // 이동 전 최종 확인
+        const finalCheck = localStorage.getItem('participants');
+        if (finalCheck) {
+            const parsed = JSON.parse(finalCheck);
+            console.log('📊 이동 전 최종 참여자 수:', parsed.length);
+        }
+        
         window.location.href = 'quiz.html?event=' + encodeURIComponent(eventName);
-    }, 500);
+    }, 1500); // 1.5초로 증가
+    
+    // 추가 보장: 페이지를 즉시 떠나지 못하도록 하는 동안 추가 이벤트 발생
+    setTimeout(() => {
+        try {
+            localStorage.setItem('finalSync', Date.now().toString());
+            localStorage.removeItem('finalSync');
+            console.log('💾 최종 동기화 시그널 전송');
+        } catch (e) {
+            console.log('최종 동기화 실패:', e.message);
+        }
+    }, 800);
 }
 
 function showAlreadyJoinedMessage(participant) {

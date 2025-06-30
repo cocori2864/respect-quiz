@@ -266,9 +266,20 @@ document.addEventListener('DOMContentLoaded', function() {
 
 // 스토리지 변경 감지 (다른 탭에서 참여자 등록 시)
 window.addEventListener('storage', function(e) {
-    if (e.key === 'participants' || e.key === 'participantUpdate') {
+    if (e.key === 'participants' || 
+        e.key === 'participantUpdate' || 
+        e.key === 'lastParticipantAdded' ||
+        e.key === 'finalSync' ||
+        e.key === 'syncComplete') {
         console.log('🔔 Storage 이벤트 감지:', e.key);
-        setTimeout(refreshData, 100); // 약간의 지연 후 새로고침
+        
+        // lastParticipantAdded 키의 경우 즉시 새로고침
+        if (e.key === 'lastParticipantAdded') {
+            console.log('⚡ 신규 참여자 즉시 감지');
+            refreshData();
+        } else {
+            setTimeout(refreshData, 100);
+        }
     }
 });
 
@@ -282,15 +293,37 @@ window.addEventListener('message', function(e) {
 
 // localStorage 변경을 더 적극적으로 감지
 let lastParticipantCount = 0;
+let lastParticipantHash = '';
+let lastCheckTime = '';
+
 setInterval(function() {
     try {
         const currentData = localStorage.getItem('participants');
         const currentParticipants = currentData ? JSON.parse(currentData) : [];
+        const currentHash = currentData ? btoa(currentData).substring(0, 16) : '';
+        
+        // 참여자 수 변경 감지
         if (currentParticipants.length !== lastParticipantCount) {
             console.log('🔄 참여자 수 변경 감지:', lastParticipantCount, '→', currentParticipants.length);
             lastParticipantCount = currentParticipants.length;
             refreshData();
         }
+        
+        // 데이터 내용 변경 감지 (참여자 수는 같지만 내용이 바뀐 경우)
+        if (currentHash !== lastParticipantHash) {
+            console.log('📊 참여자 데이터 변경 감지');
+            lastParticipantHash = currentHash;
+            refreshData();
+        }
+        
+        // lastParticipantAdded 키 변경 감지
+        const lastAdded = localStorage.getItem('lastParticipantAdded');
+        if (lastAdded && lastAdded !== lastCheckTime) {
+            console.log('⚡ 새 참여자 직접 감지');
+            lastCheckTime = lastAdded;
+            refreshData();
+        }
+        
     } catch (e) {
         console.error('참여자 수 체크 오류:', e);
     }
