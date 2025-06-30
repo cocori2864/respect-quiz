@@ -156,8 +156,6 @@ document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('eventTitle').textContent = eventName + ' 참여';
     document.title = eventName + ' 참여';
     
-    // 2초 후 자동 등록 (로딩 효과)
-    setTimeout(() => {
-        autoRegisterParticipant();
-    }, 2000);
+    // 즉시 자동 등록 (로딩 화면 건너뛰기)
+    autoRegisterParticipant();
 });

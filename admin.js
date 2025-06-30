@@ -172,14 +172,24 @@ function openUrlInNewTab(url) {
 }
 
 function updateStats() {
+    // 최신 데이터 강제 새로고침
+    participants = JSON.parse(localStorage.getItem('participants')) || [];
+    
     const totalParticipants = participants.length;
-    const oneHourAgo = Date.now() - (60 * 60 * 1000);
+    const fiveMinutesAgo = Date.now() - (5 * 60 * 1000); // 5분으로 변경
     const recentParticipants = participants.filter(p => {
-        return new Date(p.timestamp).getTime() > oneHourAgo;
+        return new Date(p.timestamp).getTime() > fiveMinutesAgo;
     }).length;
     
     document.getElementById('totalParticipants').textContent = totalParticipants;
     document.getElementById('recentParticipants').textContent = recentParticipants;
+    
+    // 콘솔 로그로 디버깅
+    console.log('통계 업데이트:', {
+        총참여자: totalParticipants,
+        최근5분: recentParticipants,
+        참여자목록: participants
+    });
 }
 
 function refreshData() {

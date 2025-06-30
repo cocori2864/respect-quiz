@@ -160,8 +160,8 @@ h2 {
     color: var(--white);
     border: none;
     border-radius: var(--border-radius);
-    padding: 14px 28px;
-    font-size: 16px;
+    padding: 18px 36px;
+    font-size: 18px;
     font-weight: 600;
     cursor: pointer;
     transition: var(--transition);
@@ -169,10 +169,11 @@ h2 {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    gap: 8px;
+    gap: 10px;
     position: relative;
     overflow: hidden;
     box-shadow: var(--shadow-sm);
+    min-height: 56px;
 }
 
 .btn::before {
@@ -202,13 +203,14 @@ h2 {
 
 /* 큰 퀴즈 버튼 */
 .quiz-btn {
-    font-size: 22px;
-    padding: 18px 36px;
+    font-size: 24px;
+    padding: 22px 44px;
     width: 100%;
-    max-width: 320px;
+    max-width: 360px;
     background: linear-gradient(135deg, var(--secondary-green) 0%, #00a085 100%);
     border-radius: 16px;
     font-weight: 700;
+    min-height: 64px;
 }
 
 .quiz-btn:hover {
