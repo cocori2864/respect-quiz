@@ -149,7 +149,7 @@ h2 {
     border-color: var(--primary-light);
 }
 
-/* 버튼 스타일 */
+/* 대형 버튼 스타일 */
 .btn,
 .quiz-btn,
 .admin-use-btn,
@@ -159,21 +159,25 @@ h2 {
     background: var(--primary-blue);
     color: var(--white);
     border: none;
-    border-radius: var(--border-radius);
-    padding: 18px 36px;
-    font-size: 18px;
-    font-weight: 600;
+    border-radius: 20px;
+    padding: 24px 48px;
+    font-size: 20px;
+    font-weight: 700;
     cursor: pointer;
     transition: var(--transition);
     text-decoration: none;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    gap: 10px;
+    gap: 12px;
     position: relative;
     overflow: hidden;
-    box-shadow: var(--shadow-sm);
-    min-height: 56px;
+    box-shadow: var(--shadow-lg);
+    min-height: 70px;
+    width: 100%;
+    max-width: 400px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
 }
 
 .btn::before {
@@ -201,22 +205,28 @@ h2 {
     transform: translateY(0);
 }
 
-/* 큰 퀴즈 버튼 */
+/* 메가 퀴즈 버튼 */
 .quiz-btn {
-    font-size: 24px;
-    padding: 22px 44px;
+    font-size: 28px;
+    padding: 28px 56px;
     width: 100%;
-    max-width: 360px;
+    max-width: 500px;
     background: linear-gradient(135deg, var(--secondary-green) 0%, #00a085 100%);
-    border-radius: 16px;
-    font-weight: 700;
-    min-height: 64px;
+    border-radius: 25px;
+    font-weight: 800;
+    min-height: 80px;
+    box-shadow: 
+        0 8px 30px rgba(0, 184, 148, 0.4),
+        inset 0 2px 0 rgba(255, 255, 255, 0.2);
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 
 .quiz-btn:hover {
     background: linear-gradient(135deg, #00a085 0%, var(--secondary-green) 100%);
-    transform: translateY(-2px);
-    box-shadow: 0 8px 20px rgba(0, 184, 148, 0.3);
+    transform: translateY(-3px);
+    box-shadow: 
+        0 12px 40px rgba(0, 184, 148, 0.5),
+        inset 0 2px 0 rgba(255, 255, 255, 0.3);
 }
 
 /* 관리자 버튼 */

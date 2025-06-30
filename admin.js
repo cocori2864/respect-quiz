@@ -198,7 +198,15 @@ function updateStats() {
 }
 
 function refreshData() {
-    participants = JSON.parse(localStorage.getItem('participants')) || [];
+    // 강제로 localStorage에서 최신 데이터 가져오기
+    try {
+        const storedData = localStorage.getItem('participants');
+        participants = storedData ? JSON.parse(storedData) : [];
+        console.log('관리자: 참여자 데이터 새로고침', participants.length, '명');
+    } catch (error) {
+        console.error('참여자 데이터 로드 실패:', error);
+        participants = [];
+    }
     updateStats();
 }
 
@@ -208,8 +216,8 @@ document.addEventListener('DOMContentLoaded', function() {
     generateQR();
     refreshData();
     
-    // 5초마다 데이터 새로고침
-    setInterval(refreshData, 5000);
+    // 2초마다 데이터 새로고침 (더 빠른 반영)
+    setInterval(refreshData, 2000);
 });
 
 // 스토리지 변경 감지 (다른 탭에서 참여자 등록 시)

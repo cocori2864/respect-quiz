@@ -8,22 +8,34 @@ function getEventNameFromUrl() {
 }
 
 function generateDeviceId() {
-    // 브라우저 고유 정보로 디바이스 ID 생성
+    // 기존 저장된 디바이스 ID가 있는지 확인
+    const storedId = localStorage.getItem('deviceId');
+    if (storedId) {
+        console.log('기존 디바이스 ID 사용:', storedId);
+        return storedId;
+    }
+    
+    // 브라우저 고유 정보로 디바이스 ID 생성 (강화된 버전)
     const canvas = document.createElement('canvas');
     const ctx = canvas.getContext('2d');
     ctx.textBaseline = 'top';
     ctx.font = '14px Arial';
-    ctx.fillText('Device fingerprint', 2, 2);
+    ctx.fillText('Seoul Asan Medical Center Device ID', 2, 2);
     
     const deviceInfo = [
         navigator.userAgent,
         navigator.language,
+        navigator.languages ? navigator.languages.join(',') : '',
         screen.width + 'x' + screen.height,
+        screen.colorDepth,
         new Date().getTimezoneOffset(),
+        navigator.platform,
+        navigator.cookieEnabled,
+        typeof navigator.doNotTrack !== 'undefined' ? navigator.doNotTrack : '',
         canvas.toDataURL()
     ].join('|');
     
-    // 간단한 해시 생성
+    // 향상된 해시 생성
     let hash = 0;
     for (let i = 0; i < deviceInfo.length; i++) {
         const char = deviceInfo.charCodeAt(i);
@@ -31,7 +43,17 @@ function generateDeviceId() {
         hash = hash & hash; // 32비트 정수로 변환
     }
     
-    return Math.abs(hash).toString(36).toUpperCase();
+    // 추가 랜덤성 (첫 방문시에만)
+    const randomSalt = Math.random().toString(36).substring(2, 8);
+    hash = hash + randomSalt.split('').reduce((a, b) => a + b.charCodeAt(0), 0);
+    
+    const deviceId = Math.abs(hash).toString(36).toUpperCase();
+    
+    // 디바이스 ID를 localStorage에 영구 저장
+    localStorage.setItem('deviceId', deviceId);
+    console.log('새 디바이스 ID 생성 및 저장:', deviceId);
+    
+    return deviceId;
 }
 
 function autoRegisterParticipant() {
@@ -58,7 +80,19 @@ function autoRegisterParticipant() {
         };
         
         participants.push(participant);
-        localStorage.setItem('participants', JSON.stringify(participants));
+        
+        // 확실한 저장을 위해 여러 번 시도
+        try {
+            localStorage.setItem('participants', JSON.stringify(participants));
+            console.log('참여자 등록 완료:', participant.anonymousId, '총', participants.length, '명');
+            
+            // 저장 확인
+            const savedData = localStorage.getItem('participants');
+            const parsedData = JSON.parse(savedData);
+            console.log('저장 확인:', parsedData.length, '명');
+        } catch (error) {
+            console.error('참여자 저장 실패:', error);
+        }
         
         // 등록 완료 메시지 표시
         showWelcomeMessage(participant);

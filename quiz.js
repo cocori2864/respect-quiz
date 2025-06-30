@@ -208,21 +208,34 @@ function getCoupon() {
 }
 
 function generateDeviceId() {
-    // participant.js와 동일한 방식
+    // 기존 저장된 디바이스 ID가 있는지 확인 (participant.js와 동일)
+    const storedId = localStorage.getItem('deviceId');
+    if (storedId) {
+        console.log('퀴즈: 기존 디바이스 ID 사용:', storedId);
+        return storedId;
+    }
+    
+    // 브라우저 고유 정보로 디바이스 ID 생성 (participant.js와 동일)
     const canvas = document.createElement('canvas');
     const ctx = canvas.getContext('2d');
     ctx.textBaseline = 'top';
     ctx.font = '14px Arial';
-    ctx.fillText('Device fingerprint', 2, 2);
+    ctx.fillText('Seoul Asan Medical Center Device ID', 2, 2);
     
     const deviceInfo = [
         navigator.userAgent,
         navigator.language,
+        navigator.languages ? navigator.languages.join(',') : '',
         screen.width + 'x' + screen.height,
+        screen.colorDepth,
         new Date().getTimezoneOffset(),
+        navigator.platform,
+        navigator.cookieEnabled,
+        typeof navigator.doNotTrack !== 'undefined' ? navigator.doNotTrack : '',
         canvas.toDataURL()
     ].join('|');
     
+    // 향상된 해시 생성
     let hash = 0;
     for (let i = 0; i < deviceInfo.length; i++) {
         const char = deviceInfo.charCodeAt(i);
@@ -230,7 +243,17 @@ function generateDeviceId() {
         hash = hash & hash;
     }
     
-    return Math.abs(hash).toString(36).toUpperCase();
+    // 추가 랜덤성 (첫 방문시에만)
+    const randomSalt = Math.random().toString(36).substring(2, 8);
+    hash = hash + randomSalt.split('').reduce((a, b) => a + b.charCodeAt(0), 0);
+    
+    const deviceId = Math.abs(hash).toString(36).toUpperCase();
+    
+    // 디바이스 ID를 localStorage에 영구 저장
+    localStorage.setItem('deviceId', deviceId);
+    console.log('퀴즈: 새 디바이스 ID 생성 및 저장:', deviceId);
+    
+    return deviceId;
 }
 
 // 페이지 로드 시 초기화
