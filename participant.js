@@ -2,6 +2,20 @@
  * 참여자 등록 JavaScript
  * 기능: 디바이스 고유ID 생성, 익명 참여 등록, 중복 참여 방지
  */
+// Firebase 설정 (respect-quiz 프로젝트의 정보로 교체)
+const firebaseConfig = {
+    apiKey: "AIzaSyBM2gx4IIBUJnfnKMgCrT6gEU1rHsxSvpw",
+    authDomain: "respect-quiz.firebaseapp.com",
+    projectId: "respect-quiz",
+    storageBucket: "respect-quiz.appspot.com", // ← 이 부분!
+    messagingSenderId: "919599211664",
+    appId: "1:919599211664:web:fcc5deb2dd35beeb5de415"
+  };
+
+// Firebase 초기화
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+
 function getEventNameFromUrl() {
     const urlParams = new URLSearchParams(window.location.search);
     return urlParams.get('event') || localStorage.getItem('eventName') || '행사';
@@ -85,149 +99,37 @@ function generateDeviceId() {
 function autoRegisterParticipant() {
     const deviceId = generateDeviceId();
     const eventName = getEventNameFromUrl();
-    
-    // 기존 참여자 목록 가져오기
-    let participants = JSON.parse(localStorage.getItem('participants')) || [];
-    
-    // 중복 참여 체크 (디바이스 ID 기준)
-    const existingParticipant = participants.find(p => p.deviceId === deviceId);
-    
-    if (existingParticipant) {
-        // 이미 참여한 디바이스 - 바로 퀴즈로 이동
-        console.log('기존 참여자 감지:', existingParticipant.anonymousId);
-        goToQuizDirectly();
-    } else {
-        // 새로운 참여자 자동 등록
-        const participant = {
-            id: Date.now(),
-            deviceId: deviceId,
-            timestamp: new Date().toISOString(),
-            eventName: eventName,
-            anonymousId: 'USER_' + deviceId.substring(0, 8),
-            isMobile: isMobileDevice(),
-            accessSource: getAccessSource(),
-            userAgent: navigator.userAgent,
-            screenSize: screen.width + 'x' + screen.height
-        };
-        
-        participants.push(participant);
-        
-        // 확실한 저장을 위해 여러 번 시도
-        let saveAttempts = 0;
-        const maxAttempts = 3;
-        
-        function attemptSave() {
-            try {
-                saveAttempts++;
-                
-                // localStorage 용량 확인
-                const testData = JSON.stringify(participants);
-                if (testData.length > 5000000) { // 5MB 제한
-                    console.warn('⚠️ localStorage 데이터가 너무 큼:', testData.length, 'bytes');
-                }
-                
-                localStorage.setItem('participants', testData);
-                
-                // 저장 검증
-                const savedData = localStorage.getItem('participants');
-                if (!savedData || savedData !== testData) {
-                    throw new Error('저장 검증 실패');
-                }
-                
-                console.log('✅ 참여자 등록 완료:', participant.anonymousId, '총', participants.length, '명');
-                console.log('📱 모바일 접속:', participant.isMobile, '접속 경로:', participant.accessSource);
-                
-                // 저장 성공 시 동기화 처리
-                handleSuccessfulSave();
-                
-            } catch (error) {
-                console.error(`❌ 저장 시도 ${saveAttempts}/${maxAttempts} 실패:`, error.message);
-                
-                if (saveAttempts < maxAttempts) {
-                    // 재시도 전 약간의 지연
-                    setTimeout(() => {
-                        console.log(`🔄 저장 재시도 ${saveAttempts + 1}/${maxAttempts}`);
-                        attemptSave();
-                    }, 100 * saveAttempts);
-                } else {
-                    console.error('💥 모든 저장 시도 실패');
-                    // 실패해도 기본 흐름은 계속 진행
-                    handleSuccessfulSave();
-                }
-            }
+    // Firestore에서 중복 참여 체크
+    db.collection("participants").where("deviceId", "==", deviceId).get().then((querySnapshot) => {
+        if (!querySnapshot.empty) {
+            // 이미 참여한 디바이스 - 바로 퀴즈로 이동
+            const existingParticipant = querySnapshot.docs[0].data();
+            console.log('기존 참여자 감지:', existingParticipant.anonymousId);
+            goToQuizDirectly();
+        } else {
+            // 새로운 참여자 Firestore에 등록
+            const participant = {
+                id: Date.now(),
+                deviceId: deviceId,
+                timestamp: new Date().toISOString(),
+                eventName: eventName,
+                anonymousId: 'USER_' + deviceId.substring(0, 8),
+                isMobile: isMobileDevice(),
+                accessSource: getAccessSource(),
+                userAgent: navigator.userAgent,
+                screenSize: screen.width + 'x' + screen.height
+            };
+            db.collection("participants").add(participant)
+                .then((docRef) => {
+                    console.log("✅ Firestore에 참여자 등록 완료:", docRef.id);
+                    goToQuizDirectly();
+                })
+                .catch((error) => {
+                    console.error("❌ Firestore 등록 실패:", error);
+                    alert("참여 등록에 실패했습니다. 다시 시도해 주세요.");
+                });
         }
-        
-        function handleSuccessfulSave() {
-            // 모바일 QR 접속 특별 로깅
-            if (participant.isMobile && participant.accessSource === 'qr') {
-                console.log('📱 QR 모바일 접속 감지:', participant.anonymousId);
-            }
-            
-            // 저장 확인
-            const savedData = localStorage.getItem('participants');
-            const parsedData = JSON.parse(savedData);
-            console.log('💾 저장 검증 완료:', parsedData.length, '명');
-            
-            // 🚀 다중 동기화 시스템 활성화
-            
-            // 1. 기본 업데이트 트리거
-            localStorage.setItem('participantUpdate', Date.now().toString());
-            localStorage.removeItem('participantUpdate');
-            
-            // 2. 부모 창 메시지 (QR 스캔 앱에서 온 경우)
-            if (window.opener) {
-                try {
-                    window.opener.postMessage({
-                        type: 'participantAdded',
-                        participant: participant,
-                        total: parsedData.length
-                    }, '*');
-                    console.log('📨 부모 창 메시지 전송 성공');
-                } catch (e) {
-                    console.log('부모 창 통신 실패:', e.message);
-                }
-            }
-            
-            // 3. 강제 Storage 이벤트 (모든 윈도우에 전파)
-            try {
-                window.dispatchEvent(new StorageEvent('storage', {
-                    key: 'participants',
-                    oldValue: JSON.stringify(participants.slice(0, -1)),
-                    newValue: JSON.stringify(participants),
-                    url: window.location.href,
-                    storageArea: localStorage
-                }));
-                console.log('📡 강제 Storage 이벤트 발생');
-            } catch (e) {
-                console.log('Storage 이벤트 발생 실패:', e.message);
-            }
-            
-            // 4. 특별 추적 키 (폴링 시스템용)
-            localStorage.setItem('lastParticipantAdded', JSON.stringify({
-                participant: participant,
-                timestamp: Date.now(),
-                total: parsedData.length,
-                isMobile: participant.isMobile,
-                accessSource: participant.accessSource
-            }));
-            
-            // 5. 최종 동기화 보장
-            setTimeout(() => {
-                try {
-                    localStorage.setItem('syncComplete', Date.now().toString());
-                    console.log('🔄 동기화 완료 신호 전송');
-                } catch (e) {
-                    console.log('동기화 완료 신호 실패:', e.message);
-                }
-            }, 100);
-        }
-        
-        // 저장 시도 시작
-        attemptSave();
-        
-        // 등록 완료 후 바로 퀴즈로 이동
-        goToQuizDirectly();
-    }
+    });
 }
 
 function showWelcomeMessage(participant) {

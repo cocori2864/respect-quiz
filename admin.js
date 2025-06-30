@@ -7,6 +7,20 @@
 let participants = JSON.parse(localStorage.getItem('participants')) || [];
 let eventName = localStorage.getItem('eventName') || '서울아산병원 소통 감수성 퀴즈';
 
+// Firebase 설정 (respect-quiz 프로젝트의 정보로 교체)
+const firebaseConfig = {
+    apiKey: "AIzaSyBM2gx4IIBUJnfnKMgCrT6gEU1rHsxSvpw",
+    authDomain: "respect-quiz.firebaseapp.com",
+    projectId: "respect-quiz",
+    storageBucket: "respect-quiz.appspot.com", // ← 이 부분!
+    messagingSenderId: "919599211664",
+    appId: "1:919599211664:web:fcc5deb2dd35beeb5de415"
+  };
+
+// Firebase 초기화
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+
 function generateQR() {
     const eventNameInput = document.getElementById('eventName').value;
     if (eventNameInput) {
@@ -254,11 +268,32 @@ function refreshData() {
     updateStats();
 }
 
+function listenToParticipants() {
+  db.collection("participants").onSnapshot((querySnapshot) => {
+    const participants = [];
+    querySnapshot.forEach((doc) => {
+      participants.push(doc.data());
+    });
+    // 중복 제거, 집계 등 기존 로직 사용
+    const uniqueParticipants = participants.filter((p, i, arr) =>
+      i === arr.findIndex(x => x.deviceId === p.deviceId)
+    );
+    const totalParticipants = uniqueParticipants.length;
+    const fiveMinutesAgo = Date.now() - (5 * 60 * 1000);
+    const recentParticipants = uniqueParticipants.filter(p =>
+      new Date(p.timestamp).getTime() > fiveMinutesAgo
+    ).length;
+    document.getElementById('totalParticipants').textContent = totalParticipants;
+    document.getElementById('recentParticipants').textContent = recentParticipants;
+  });
+}
+
 // 초기화
 document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('eventName').value = eventName;
     generateQR();
     refreshData();
+    listenToParticipants();
     
     // 2초마다 데이터 새로고침 (더 빠른 반영)
     setInterval(refreshData, 2000);
