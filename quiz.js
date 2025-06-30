@@ -70,7 +70,7 @@ function startQuiz() {
     const hasUsedCoupon = checkIfCouponUsed(deviceId);
     
     if (hasUsedCoupon) {
-        alert('이미 퀴즈를 완료하고 쿠폰을 사용하셨습니다.\\n추가 참여는 불가능합니다.');
+        alert('이미 퀴즈를 완료하고 쿠폰을 사용하셨습니다.\n추가 참여는 불가능합니다.');
         // 참여자 페이지로 돌아가기
         const eventName = getEventNameFromUrl();
         window.location.href = 'participant.html?event=' + encodeURIComponent(eventName);
@@ -109,9 +109,23 @@ function displayQuestion() {
         const optionDiv = document.createElement('div');
         optionDiv.className = 'answer-option';
         optionDiv.innerHTML = `
-            <input type="radio" id="option${index}" name="answer" value="${index}" onchange="selectAnswer()">
-            <label for="option${index}">${option}</label>
+            <input type="radio" id="option${index}" name="answer" value="${index}" style="display: none;">
+            <label for="option${index}" class="option-label">${option}</label>
         `;
+        
+        // 터치 반응성 향상을 위한 이벤트 리스너 추가
+        optionDiv.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            selectOption(index);
+        });
+        
+        optionDiv.addEventListener('touchend', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            selectOption(index);
+        });
+        
         answerOptions.appendChild(optionDiv);
     });
     
@@ -121,6 +135,31 @@ function displayQuestion() {
 
 function selectAnswer() {
     document.getElementById('nextBtn').disabled = false;
+}
+
+function selectOption(index) {
+    // 모든 옵션의 선택 상태 초기화
+    const allOptions = document.querySelectorAll('.answer-option');
+    allOptions.forEach(option => {
+        option.classList.remove('selected');
+        const radio = option.querySelector('input[type="radio"]');
+        radio.checked = false;
+    });
+    
+    // 선택된 옵션 활성화
+    const selectedOption = document.querySelector(`#option${index}`);
+    const selectedDiv = selectedOption.closest('.answer-option');
+    
+    selectedOption.checked = true;
+    selectedDiv.classList.add('selected');
+    
+    // 다음 버튼 활성화
+    document.getElementById('nextBtn').disabled = false;
+    
+    // 선택 피드백 (진동)
+    if (navigator.vibrate) {
+        navigator.vibrate(50);
+    }
 }
 
 function nextQuestion() {
@@ -182,7 +221,7 @@ function getCoupon() {
     // 쿠폰 사용 여부 재확인 (혹시 모를 동시성 문제 방지)
     const hasUsedCoupon = checkIfCouponUsed(deviceId);
     if (hasUsedCoupon) {
-        alert('이미 쿠폰을 사용하셨습니다.\\n추가 쿠폰 발급은 불가능합니다.');
+        alert('이미 쿠폰을 사용하셨습니다.\n추가 쿠폰 발급은 불가능합니다.');
         window.location.href = 'participant.html?event=' + encodeURIComponent(eventName);
         return;
     }
@@ -268,7 +307,7 @@ document.addEventListener('DOMContentLoaded', function() {
     
     if (hasUsedCoupon) {
         // 쿠폰 사용 후 접근 시 알림 후 참여자 페이지로 리다이렉트
-        alert('이미 퀴즈를 완료하고 쿠폰을 사용하셨습니다.\\n추가 참여는 불가능합니다.');
+        alert('이미 퀴즈를 완료하고 쿠폰을 사용하셨습니다.\n추가 참여는 불가능합니다.');
         window.location.href = 'participant.html?event=' + encodeURIComponent(eventName);
         return;
     }

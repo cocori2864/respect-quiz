@@ -7,6 +7,15 @@ function getEventNameFromUrl() {
     return urlParams.get('event') || localStorage.getItem('eventName') || '행사';
 }
 
+function getAccessSource() {
+    const urlParams = new URLSearchParams(window.location.search);
+    return urlParams.get('source') || 'direct';
+}
+
+function isMobileDevice() {
+    return /Mobile|Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+}
+
 function generateDeviceId() {
     // 기존 저장된 디바이스 ID가 있는지 확인
     const storedId = localStorage.getItem('deviceId');
@@ -76,7 +85,11 @@ function autoRegisterParticipant() {
             deviceId: deviceId,
             timestamp: new Date().toISOString(),
             eventName: eventName,
-            anonymousId: 'USER_' + deviceId.substring(0, 8)
+            anonymousId: 'USER_' + deviceId.substring(0, 8),
+            isMobile: isMobileDevice(),
+            accessSource: getAccessSource(),
+            userAgent: navigator.userAgent,
+            screenSize: screen.width + 'x' + screen.height
         };
         
         participants.push(participant);
@@ -85,6 +98,12 @@ function autoRegisterParticipant() {
         try {
             localStorage.setItem('participants', JSON.stringify(participants));
             console.log('참여자 등록 완료:', participant.anonymousId, '총', participants.length, '명');
+            console.log('모바일 접속:', participant.isMobile, '접속 경로:', participant.accessSource);
+            
+            // 모바일 QR 접속 특별 로깅
+            if (participant.isMobile && participant.accessSource === 'qr') {
+                console.log('📱 QR 모바일 접속 감지:', participant.anonymousId);
+            }
             
             // 저장 확인
             const savedData = localStorage.getItem('participants');
@@ -147,7 +166,7 @@ function goToQuiz() {
     const hasUsedCoupon = checkIfCouponUsed(deviceId);
     
     if (hasUsedCoupon) {
-        alert('이미 퀴즈를 완료하고 쿠폰을 사용하셨습니다.\\n추가 참여는 불가능합니다.');
+        alert('이미 퀴즈를 완료하고 쿠폰을 사용하셨습니다.\n추가 참여는 불가능합니다.');
         return;
     }
     

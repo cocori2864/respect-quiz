@@ -73,7 +73,7 @@ function displayCoupon() {
 
 function requestAdminUse() {
     // 관리자 확인
-    const confirmed = confirm('이 쿠폰을 사용 처리하시겠습니까?\\n\\n⚠️ 이 작업은 되돌릴 수 없습니다.');
+    const confirmed = confirm('이 쿠폰을 사용 처리하시겠습니까?\n\n⚠️ 이 작업은 되돌릴 수 없습니다.');
     
     if (!confirmed) {
         return;
@@ -164,7 +164,7 @@ function preventBackNavigation() {
             // 쿠폰이 사용된 경우 뒤로가기 차단
             if (currentCoupon && currentCoupon.used) {
                 window.history.pushState('couponPage', null, window.location.href);
-                alert('쿠폰 사용이 완료되어 이전 페이지로 돌아갈 수 없습니다.\\n퀴즈 참여가 완료되었습니다.');
+                alert('쿠폰 사용이 완료되어 이전 페이지로 돌아갈 수 없습니다.\n퀴즈 참여가 완료되었습니다.');
                 return false;
             }
         });

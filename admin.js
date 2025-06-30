@@ -17,7 +17,7 @@ function generateQR() {
     // 현재 페이지의 도메인과 경로를 기반으로 참여자 URL 생성
     const currentUrl = window.location.href;
     const baseUrl = currentUrl.substring(0, currentUrl.lastIndexOf('/') + 1);
-    const participantUrl = baseUrl + 'participant.html?event=' + encodeURIComponent(eventName);
+    const participantUrl = baseUrl + 'participant.html?event=' + encodeURIComponent(eventName) + '&source=qr';
     
     // QR 코드 생성
     const qrCodeContainer = document.getElementById('qrcode');
@@ -165,7 +165,7 @@ function showManualQR(container, url) {
 
 function copyToClipboard(text) {
     navigator.clipboard.writeText(text).then(function() {
-        alert('✅ 주소가 클립보드에 복사되었습니다!\\n\\n참여자에게 공유하세요.');
+        alert('✅ 주소가 클립보드에 복사되었습니다!\n\n참여자에게 공유하세요.');
     }).catch(function() {
         // 클립보드 API가 지원되지 않는 경우
         prompt('아래 주소를 복사해서 참여자에게 공유하세요:', text);

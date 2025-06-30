@@ -551,26 +551,66 @@ textarea:focus {
     transition: width 0.4s ease;
 }
 
-/* 답안 옵션 */
+/* 🎯 Ultra-Enhanced 답안 옵션 */
 .answer-option {
     background: var(--neutral-100);
-    border: 2px solid var(--neutral-300);
-    border-radius: var(--border-radius);
-    padding: 16px;
-    margin: 10px 0;
+    border: 3px solid var(--neutral-300);
+    border-radius: 20px;
+    padding: 24px 20px;
+    margin: 16px 0;
     cursor: pointer;
-    transition: var(--transition);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+    min-height: 80px;
+    display: flex;
+    align-items: center;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
 }
 
-.answer-option:hover {
+.answer-option:hover,
+.answer-option:active {
     background: var(--white);
     border-color: var(--primary-blue);
-    transform: translateX(4px);
+    transform: translateX(6px) scale(1.02);
+    box-shadow: 
+        0 8px 25px rgba(0, 102, 204, 0.15),
+        0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.answer-option.selected {
+    background: linear-gradient(135deg, var(--primary-blue), var(--primary-light));
+    border-color: var(--primary-blue);
+    color: var(--white);
+    transform: translateX(8px) scale(1.03);
+    box-shadow: 
+        0 12px 30px rgba(0, 102, 204, 0.3),
+        0 6px 15px rgba(0, 0, 0, 0.15);
+}
+
+.answer-option.selected::before {
+    content: '✓';
+    position: absolute;
+    right: 20px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 24px;
+    font-weight: bold;
+    color: var(--white);
+}
+
+.option-label {
+    width: 100%;
+    cursor: pointer;
+    font-size: 18px;
+    font-weight: 500;
+    line-height: 1.4;
+    padding-right: 40px;
 }
 
 .answer-option input[type="radio"] {
-    margin-right: 12px;
-    transform: scale(1.1);
+    display: none !important;
 }
 
 /* 참여자 아이템 */
@@ -599,6 +639,59 @@ textarea:focus {
     gap: 12px;
     justify-content: center;
     flex-wrap: wrap;
+}
+
+/* 🚀 Ultra-Mega 다음 문제 버튼 */
+.next-btn,
+.start-btn,
+.coupon-btn,
+.retry-btn {
+    background: linear-gradient(135deg, var(--secondary-green) 0%, #00a085 100%);
+    color: var(--white);
+    border: none;
+    border-radius: 25px;
+    padding: 28px 48px;
+    font-size: 22px;
+    font-weight: 800;
+    cursor: pointer;
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 
+        0 12px 35px rgba(0, 184, 148, 0.3),
+        0 4px 15px rgba(0, 0, 0, 0.1),
+        inset 0 2px 0 rgba(255, 255, 255, 0.2);
+    min-height: 80px;
+    width: 100%;
+    max-width: 500px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.next-btn:hover,
+.start-btn:hover,
+.coupon-btn:hover,
+.retry-btn:hover {
+    background: linear-gradient(135deg, #00a085 0%, var(--secondary-green) 100%);
+    transform: translateY(-4px) scale(1.02);
+    box-shadow: 
+        0 16px 40px rgba(0, 184, 148, 0.4),
+        0 8px 20px rgba(0, 0, 0, 0.15),
+        inset 0 3px 0 rgba(255, 255, 255, 0.3);
+}
+
+.next-btn:disabled {
+    background: var(--neutral-400);
+    color: var(--neutral-600);
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
 }
 
 /* 반응형 디자인 */
@@ -642,19 +735,24 @@ textarea:focus {
     .btn,
     .quiz-btn,
     .admin-use-btn,
-    .back-btn {
+    .back-btn,
+    .next-btn,
+    .start-btn,
+    .coupon-btn,
+    .retry-btn {
         padding: 24px 40px;
         font-size: 20px;
         min-height: 80px;
         border-radius: 25px;
         font-weight: 800;
+        width: 100%;
+        max-width: 100%;
     }
     
     .quiz-btn {
         font-size: 26px;
         padding: 32px 48px;
         min-height: 100px;
-        max-width: 100%;
         border-radius: 30px;
     }
     
@@ -665,11 +763,37 @@ textarea:focus {
         border-radius: 28px;
     }
     
+    .next-btn,
+    .start-btn,
+    .coupon-btn,
+    .retry-btn {
+        font-size: 22px;
+        padding: 28px 40px;
+        min-height: 85px;
+        border-radius: 28px;
+        margin: 16px 0;
+    }
+    
     .action-buttons {
         flex-direction: column;
         align-items: center;
         gap: 20px;
+        width: 100%;
     }
+    
+    /* 🎯 Ultra-Enhanced 답안 옵션 모바일 */
+    .answer-option {
+        padding: 28px 24px;
+        min-height: 88px;
+        margin: 20px 0;
+        border-radius: 24px;
+        font-size: 18px;
+    }
+    
+    .option-label {
+        font-size: 18px;
+        font-weight: 600;
+    }"
 }
 
 /* 📱 Ultra-Small 모바일 최적화 */
@@ -694,12 +818,18 @@ textarea:focus {
     .btn,
     .quiz-btn,
     .admin-use-btn,
-    .back-btn {
+    .back-btn,
+    .next-btn,
+    .start-btn,
+    .coupon-btn,
+    .retry-btn {
         padding: 28px 36px;
         font-size: 18px;
         min-height: 88px;
         border-radius: 28px;
         font-weight: 800;
+        width: 100%;
+        max-width: 100%;
     }
     
     .quiz-btn {
@@ -714,6 +844,31 @@ textarea:focus {
         padding: 32px 40px;
         min-height: 96px;
         border-radius: 30px;
+    }
+    
+    .next-btn,
+    .start-btn,
+    .coupon-btn,
+    .retry-btn {
+        font-size: 20px;
+        padding: 32px 36px;
+        min-height: 92px;
+        border-radius: 30px;
+        margin: 20px 0;
+    }
+    
+    /* 🎯 Ultra-Enhanced 답안 옵션 작은 모바일 */
+    .answer-option {
+        padding: 32px 28px;
+        min-height: 96px;
+        margin: 24px 0;
+        border-radius: 28px;
+        font-size: 18px;
+    }
+    
+    .option-label {
+        font-size: 18px;
+        font-weight: 700;
     }
 }
 
@@ -757,10 +912,22 @@ textarea:focus {
     }
     
     .answer-option {
-        min-height: 72px;
-        padding: 24px 20px;
+        min-height: 88px;
+        padding: 28px 24px;
         font-size: 18px;
-        border-radius: 16px;
+        border-radius: 20px;
+    }
+    
+    .next-btn,
+    .start-btn,
+    .coupon-btn,
+    .retry-btn {
+        min-height: 88px;
+        padding: 28px 48px;
+        font-size: 20px;
+        border-radius: 28px;
+        width: 100%;
+        max-width: 100%;
     }
     
     .step-card,
