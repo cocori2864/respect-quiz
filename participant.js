@@ -66,16 +66,54 @@ function showWelcomeMessage(participant) {
     // 로딩 화면 숨기기
     document.getElementById('autoRegister').style.display = 'none';
     
+    // 쿠폰 사용 여부 확인
+    const hasUsedCoupon = checkIfCouponUsed(participant.deviceId);
+    
     // 환영 메시지 표시
     const welcomeMessage = document.getElementById('welcomeMessage');
     document.getElementById('registrationTime').textContent = 
         new Date(participant.timestamp).toLocaleString('ko-KR');
     document.getElementById('anonymousId').textContent = participant.anonymousId;
     
+    // 쿠폰 사용 여부에 따라 퀴즈 버튼 처리
+    const quizButton = welcomeMessage.querySelector('.quiz-btn');
+    if (hasUsedCoupon) {
+        quizButton.disabled = true;
+        quizButton.textContent = '🔒 퀴즈 완료 (쿠폰 사용됨)';
+        quizButton.style.background = '#a0aec0';
+        quizButton.style.cursor = 'not-allowed';
+        
+        // 완료 메시지 추가
+        const completedMessage = document.createElement('p');
+        completedMessage.style.color = '#718096';
+        completedMessage.style.fontSize = '14px';
+        completedMessage.style.marginTop = '10px';
+        completedMessage.textContent = '이미 퀴즈를 완료하고 쿠폰을 사용하셨습니다.';
+        welcomeMessage.appendChild(completedMessage);
+    }
+    
     welcomeMessage.style.display = 'block';
 }
 
+function checkIfCouponUsed(deviceId) {
+    // 해당 디바이스로 발급된 쿠폰 중 사용된 것이 있는지 확인
+    const coupons = JSON.parse(localStorage.getItem('coupons')) || [];
+    const deviceCoupons = coupons.filter(c => c.deviceId === deviceId);
+    
+    // 사용된 쿠폰이 하나라도 있으면 true
+    return deviceCoupons.some(c => c.used === true);
+}
+
 function goToQuiz() {
+    // 쿠폰 사용 여부 확인
+    const deviceId = generateDeviceId();
+    const hasUsedCoupon = checkIfCouponUsed(deviceId);
+    
+    if (hasUsedCoupon) {
+        alert('이미 퀴즈를 완료하고 쿠폰을 사용하셨습니다.\\n추가 참여는 불가능합니다.');
+        return;
+    }
+    
     const eventName = getEventNameFromUrl();
     window.location.href = 'quiz.html?event=' + encodeURIComponent(eventName);
 }
@@ -84,10 +122,30 @@ function showAlreadyJoinedMessage(participant) {
     // 로딩 화면 숨기기
     document.getElementById('autoRegister').style.display = 'none';
     
+    // 쿠폰 사용 여부 확인
+    const hasUsedCoupon = checkIfCouponUsed(participant.deviceId);
+    
     // 이미 참여 메시지 표시
     const alreadyJoinedMessage = document.getElementById('alreadyJoined');
     document.getElementById('firstJoinTime').textContent = 
         new Date(participant.timestamp).toLocaleString('ko-KR');
+    
+    // 쿠폰 사용 여부에 따라 퀴즈 버튼 처리
+    const quizButton = alreadyJoinedMessage.querySelector('.quiz-btn');
+    if (hasUsedCoupon) {
+        quizButton.disabled = true;
+        quizButton.textContent = '🔒 퀴즈 완료 (쿠폰 사용됨)';
+        quizButton.style.background = '#a0aec0';
+        quizButton.style.cursor = 'not-allowed';
+        
+        // 완료 메시지 추가
+        const completedMessage = document.createElement('p');
+        completedMessage.style.color = '#718096';
+        completedMessage.style.fontSize = '14px';
+        completedMessage.style.marginTop = '10px';
+        completedMessage.textContent = '이미 퀴즈를 완료하고 쿠폰을 사용하셨습니다.';
+        alreadyJoinedMessage.appendChild(completedMessage);
+    }
     
     alreadyJoinedMessage.style.display = 'block';
 }
