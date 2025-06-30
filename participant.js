@@ -105,10 +105,28 @@ function autoRegisterParticipant() {
                 console.log('📱 QR 모바일 접속 감지:', participant.anonymousId);
             }
             
-            // 저장 확인
+            // 저장 확인 및 강제 동기화
             const savedData = localStorage.getItem('participants');
             const parsedData = JSON.parse(savedData);
-            console.log('저장 확인:', parsedData.length, '명');
+            console.log('✅ 저장 확인:', parsedData.length, '명');
+            
+            // 관리자 페이지 실시간 업데이트 트리거
+            localStorage.setItem('participantUpdate', Date.now().toString());
+            localStorage.removeItem('participantUpdate');
+            
+            // CustomEvent 발생으로 관리자 페이지에 알림
+            if (window.opener) {
+                try {
+                    window.opener.postMessage({
+                        type: 'participantAdded',
+                        participant: participant,
+                        total: parsedData.length
+                    }, '*');
+                } catch (e) {
+                    console.log('부모 창 통신 실패 (정상적인 상황일 수 있음)');
+                }
+            }
+            
         } catch (error) {
             console.error('참여자 저장 실패:', error);
         }

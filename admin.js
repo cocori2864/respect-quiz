@@ -177,31 +177,75 @@ function openUrlInNewTab(url) {
 }
 
 function updateStats() {
-    // 최신 데이터 강제 새로고침
-    participants = JSON.parse(localStorage.getItem('participants')) || [];
-    
-    const totalParticipants = participants.length;
-    const fiveMinutesAgo = Date.now() - (5 * 60 * 1000); // 5분으로 변경
-    const recentParticipants = participants.filter(p => {
-        return new Date(p.timestamp).getTime() > fiveMinutesAgo;
-    }).length;
-    
-    document.getElementById('totalParticipants').textContent = totalParticipants;
-    document.getElementById('recentParticipants').textContent = recentParticipants;
-    
-    // 콘솔 로그로 디버깅
-    console.log('통계 업데이트:', {
-        총참여자: totalParticipants,
-        최근5분: recentParticipants,
-        참여자목록: participants
-    });
+    // 최신 데이터 강제 새로고침 - 여러 방법으로 시도
+    try {
+        // 방법 1: 직접 localStorage 읽기
+        const storedData = localStorage.getItem('participants');
+        participants = storedData ? JSON.parse(storedData) : [];
+        
+        // 방법 2: 중복 제거 (디바이스 ID 기준)
+        const uniqueParticipants = participants.filter((participant, index, self) => 
+            index === self.findIndex(p => p.deviceId === participant.deviceId)
+        );
+        
+        const totalParticipants = uniqueParticipants.length;
+        const fiveMinutesAgo = Date.now() - (5 * 60 * 1000);
+        const recentParticipants = uniqueParticipants.filter(p => {
+            return new Date(p.timestamp).getTime() > fiveMinutesAgo;
+        }).length;
+        
+        // 모바일 접속자 수 계산
+        const mobileParticipants = uniqueParticipants.filter(p => p.isMobile).length;
+        const qrParticipants = uniqueParticipants.filter(p => p.accessSource === 'qr').length;
+        
+        document.getElementById('totalParticipants').textContent = totalParticipants;
+        document.getElementById('recentParticipants').textContent = recentParticipants;
+        
+        // 상세 로깅으로 디버깅
+        console.log('📊 통계 업데이트:', {
+            원본데이터: participants.length,
+            중복제거후: totalParticipants,
+            최근5분: recentParticipants,
+            모바일접속: mobileParticipants,
+            QR접속: qrParticipants,
+            localStorage크기: storedData ? storedData.length : 0
+        });
+        
+        // 참여자 목록의 최근 5명 출력
+        if (uniqueParticipants.length > 0) {
+            const latest5 = uniqueParticipants.slice(-5).map(p => ({
+                익명ID: p.anonymousId,
+                시간: new Date(p.timestamp).toLocaleString(),
+                모바일: p.isMobile ? '📱' : '💻',
+                접속경로: p.accessSource || 'direct'
+            }));
+            console.log('📋 최근 참여자 5명:', latest5);
+        }
+        
+    } catch (error) {
+        console.error('❌ 통계 업데이트 실패:', error);
+        participants = [];
+        document.getElementById('totalParticipants').textContent = '0';
+        document.getElementById('recentParticipants').textContent = '0';
+    }
 }
 
 function refreshData() {
     // 강제로 localStorage에서 최신 데이터 가져오기
     try {
+        // localStorage 직접 접근으로 캐시 우회
+        localStorage.removeItem('temp_refresh');
+        localStorage.setItem('temp_refresh', Date.now().toString());
+        localStorage.removeItem('temp_refresh');
+        
         const storedData = localStorage.getItem('participants');
         participants = storedData ? JSON.parse(storedData) : [];
+        
+        console.log('🔄 데이터 새로고침:', {
+            시간: new Date().toLocaleTimeString(),
+            참여자수: participants.length,
+            데이터크기: storedData ? storedData.length : 0
+        });
         console.log('관리자: 참여자 데이터 새로고침', participants.length, '명');
     } catch (error) {
         console.error('참여자 데이터 로드 실패:', error);
@@ -222,7 +266,77 @@ document.addEventListener('DOMContentLoaded', function() {
 
 // 스토리지 변경 감지 (다른 탭에서 참여자 등록 시)
 window.addEventListener('storage', function(e) {
-    if (e.key === 'participants') {
-        refreshData();
+    if (e.key === 'participants' || e.key === 'participantUpdate') {
+        console.log('🔔 Storage 이벤트 감지:', e.key);
+        setTimeout(refreshData, 100); // 약간의 지연 후 새로고침
     }
 });
+
+// 다른 창에서 온 메시지 수신
+window.addEventListener('message', function(e) {
+    if (e.data && e.data.type === 'participantAdded') {
+        console.log('📨 참여자 추가 메시지 수신:', e.data);
+        setTimeout(refreshData, 100);
+    }
+});
+
+// localStorage 변경을 더 적극적으로 감지
+let lastParticipantCount = 0;
+setInterval(function() {
+    try {
+        const currentData = localStorage.getItem('participants');
+        const currentParticipants = currentData ? JSON.parse(currentData) : [];
+        if (currentParticipants.length !== lastParticipantCount) {
+            console.log('🔄 참여자 수 변경 감지:', lastParticipantCount, '→', currentParticipants.length);
+            lastParticipantCount = currentParticipants.length;
+            refreshData();
+        }
+    } catch (e) {
+        console.error('참여자 수 체크 오류:', e);
+    }
+}, 1000); // 1초마다 체크
+
+// 강제 새로고침 함수
+function forceRefreshStats() {
+    console.log('🔄 강제 새로고침 실행');
+    
+    // localStorage 캐시 강제 삭제
+    const participantData = localStorage.getItem('participants');
+    localStorage.removeItem('participants');
+    if (participantData) {
+        localStorage.setItem('participants', participantData);
+    }
+    
+    // 즉시 새로고침
+    refreshData();
+    
+    // 시각적 피드백
+    const button = document.querySelector('button[onclick="forceRefreshStats()"]');
+    if (button) {
+        const originalText = button.innerHTML;
+        button.innerHTML = '✅ 새로고침됨';
+        button.style.background = '#27ae60';
+        setTimeout(() => {
+            button.innerHTML = originalText;
+            button.style.background = '#e74c3c';
+        }, 2000);
+    }
+    
+    // 상세 정보 출력
+    try {
+        const data = localStorage.getItem('participants');
+        const participants = data ? JSON.parse(data) : [];
+        console.log('📊 강제 새로고침 결과:', {
+            localStorage크기: data ? data.length : 0,
+            참여자수: participants.length,
+            최근3명: participants.slice(-3).map(p => ({
+                익명ID: p.anonymousId,
+                시간: new Date(p.timestamp).toLocaleString(),
+                모바일: p.isMobile ? '📱' : '💻',
+                경로: p.accessSource
+            }))
+        });
+    } catch (e) {
+        console.error('강제 새로고침 상세 정보 출력 실패:', e);
+    }
+}
