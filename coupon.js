@@ -33,17 +33,38 @@ function displayCoupon() {
     document.getElementById('eventCouponName').textContent = params.event + ' 쿠폰';
     document.title = params.event + ' 쿠폰';
     
+    // 쿠폰 사용 여부에 따른 버튼 제어
+    const backButton = document.querySelector('.back-btn');
+    
     if (currentCoupon.used) {
         // 사용된 쿠폰
         document.getElementById('couponCard').style.display = 'none';
         document.getElementById('usedCoupon').style.display = 'block';
         document.getElementById('usedTime').textContent = 
             new Date(currentCoupon.usedTime).toLocaleString('ko-KR');
+        
+        // "퀴즈로 돌아가기" 버튼 비활성화
+        if (backButton) {
+            backButton.disabled = true;
+            backButton.textContent = '퀴즈 참여 완료';
+            backButton.style.background = '#a0aec0';
+            backButton.style.cursor = 'not-allowed';
+            backButton.style.opacity = '0.6';
+        }
     } else {
         // 사용 가능한 쿠폰
         document.getElementById('couponScore').textContent = currentCoupon.score;
         document.getElementById('issueTime').textContent = 
             new Date(currentCoupon.timestamp).toLocaleString('ko-KR');
+        
+        // 버튼 활성화 상태 유지
+        if (backButton) {
+            backButton.disabled = false;
+            backButton.textContent = '퀴즈로 돌아가기';
+            backButton.style.background = '';
+            backButton.style.cursor = 'pointer';
+            backButton.style.opacity = '1';
+        }
     }
 }
 
@@ -90,6 +111,12 @@ function useCoupon() {
 }
 
 function goToQuiz() {
+    // 쿠폰이 사용된 경우 이동 방지
+    if (currentCoupon && currentCoupon.used) {
+        alert('쿠폰을 사용하여 추가 퀴즈 참여가 불가능합니다.');
+        return;
+    }
+    
     const params = getUrlParams();
     window.location.href = 'quiz.html?event=' + encodeURIComponent(params.event);
 }
