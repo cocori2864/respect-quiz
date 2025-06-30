@@ -73,7 +73,7 @@ function displayCoupon() {
 
 function requestAdminUse() {
     // 관리자 확인
-    const confirmed = confirm('관리자 확인: 이 쿠폰을 사용 처리하시겠습니까?\\n\\n⚠️ 이 작업은 되돌릴 수 없습니다.');
+    const confirmed = confirm('이 쿠폰을 사용 처리하시겠습니까?\\n\\n⚠️ 이 작업은 되돌릴 수 없습니다.');
     
     if (!confirmed) {
         return;

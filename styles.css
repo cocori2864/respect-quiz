@@ -149,35 +149,40 @@ h2 {
     border-color: var(--primary-light);
 }
 
-/* 대형 버튼 스타일 */
+/* 🎯 Ultra-Modern 메가 버튼 스타일 */
 .btn,
 .quiz-btn,
 .admin-use-btn,
 .back-btn,
 .help-btn,
 .test-btn {
-    background: var(--primary-blue);
+    background: linear-gradient(135deg, var(--primary-blue) 0%, var(--primary-light) 100%);
     color: var(--white);
     border: none;
-    border-radius: 20px;
-    padding: 24px 48px;
-    font-size: 20px;
-    font-weight: 700;
+    border-radius: 30px;
+    padding: 28px 56px;
+    font-size: 22px;
+    font-weight: 800;
     cursor: pointer;
-    transition: var(--transition);
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     text-decoration: none;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    gap: 12px;
+    gap: 16px;
     position: relative;
     overflow: hidden;
-    box-shadow: var(--shadow-lg);
-    min-height: 70px;
+    box-shadow: 
+        0 12px 35px rgba(0, 102, 204, 0.3),
+        0 4px 15px rgba(0, 0, 0, 0.1),
+        inset 0 2px 0 rgba(255, 255, 255, 0.2);
+    min-height: 88px;
     width: 100%;
-    max-width: 400px;
+    max-width: 500px;
     text-transform: uppercase;
-    letter-spacing: 0.5px;
+    letter-spacing: 1px;
+    backdrop-filter: blur(10px);
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 
 .btn::before {
@@ -205,20 +210,23 @@ h2 {
     transform: translateY(0);
 }
 
-/* 메가 퀴즈 버튼 */
+/* 🚀 Ultra-Mega 퀴즈 버튼 */
 .quiz-btn {
-    font-size: 28px;
-    padding: 28px 56px;
+    font-size: 32px;
+    padding: 36px 72px;
     width: 100%;
-    max-width: 500px;
+    max-width: 600px;
     background: linear-gradient(135deg, var(--secondary-green) 0%, #00a085 100%);
-    border-radius: 25px;
-    font-weight: 800;
-    min-height: 80px;
+    border-radius: 35px;
+    font-weight: 900;
+    min-height: 110px;
     box-shadow: 
-        0 8px 30px rgba(0, 184, 148, 0.4),
-        inset 0 2px 0 rgba(255, 255, 255, 0.2);
-    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        0 20px 60px rgba(0, 184, 148, 0.4),
+        0 8px 25px rgba(0, 0, 0, 0.15),
+        inset 0 3px 0 rgba(255, 255, 255, 0.3),
+        inset 0 -3px 0 rgba(0, 0, 0, 0.1);
+    text-shadow: 0 3px 6px rgba(0, 0, 0, 0.3);
+    transform: perspective(1000px) rotateX(1deg);
 }
 
 .quiz-btn:hover {
@@ -229,10 +237,19 @@ h2 {
         inset 0 2px 0 rgba(255, 255, 255, 0.3);
 }
 
-/* 관리자 버튼 */
+/* 🔥 Ultra-Premium 관리자 버튼 */
 .admin-use-btn {
     background: linear-gradient(135deg, var(--accent-orange) 0%, #e55a1c 100%);
-    font-weight: 600;
+    font-weight: 800;
+    font-size: 24px;
+    padding: 32px 64px;
+    min-height: 100px;
+    border-radius: 32px;
+    box-shadow: 
+        0 16px 50px rgba(253, 127, 40, 0.4),
+        0 6px 20px rgba(0, 0, 0, 0.12),
+        inset 0 2px 0 rgba(255, 255, 255, 0.25);
+    animation: pulse-glow 2s ease-in-out infinite alternate;
 }
 
 .admin-use-btn:hover {
@@ -585,18 +602,19 @@ textarea:focus {
 }
 
 /* 반응형 디자인 */
+/* 📱 Ultra-Responsive 모바일 최적화 */
 @media (max-width: 768px) {
     body {
-        padding: 8px;
+        padding: 12px;
     }
     
     .container {
-        border-radius: 16px;
+        border-radius: 20px;
     }
     
     h1 {
-        padding: 24px 16px;
-        font-size: 1.5rem;
+        padding: 32px 20px;
+        font-size: 1.75rem;
     }
     
     .admin-section,
@@ -606,57 +624,96 @@ textarea:focus {
     .registration-form,
     .welcome-message,
     .help-section {
-        padding: 16px;
-        margin: 12px;
+        padding: 24px;
+        margin: 16px;
     }
     
     .stats-grid {
-        grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-        gap: 12px;
+        grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+        gap: 16px;
     }
     
     .feature-grid {
         grid-template-columns: 1fr;
-        gap: 12px;
+        gap: 16px;
     }
     
+    /* 🎯 모바일 Ultra-Big 버튼 */
     .btn,
-    .quiz-btn {
-        padding: 12px 20px;
-        font-size: 14px;
+    .quiz-btn,
+    .admin-use-btn,
+    .back-btn {
+        padding: 24px 40px;
+        font-size: 20px;
+        min-height: 80px;
+        border-radius: 25px;
+        font-weight: 800;
     }
     
     .quiz-btn {
-        font-size: 18px;
+        font-size: 26px;
+        padding: 32px 48px;
+        min-height: 100px;
         max-width: 100%;
+        border-radius: 30px;
+    }
+    
+    .admin-use-btn {
+        font-size: 22px;
+        padding: 28px 44px;
+        min-height: 90px;
+        border-radius: 28px;
     }
     
     .action-buttons {
         flex-direction: column;
         align-items: center;
+        gap: 20px;
     }
 }
 
+/* 📱 Ultra-Small 모바일 최적화 */
 @media (max-width: 480px) {
     h1 {
-        font-size: 1.25rem;
-        padding: 20px 12px;
+        font-size: 1.5rem;
+        padding: 28px 16px;
     }
     
     .admin-section,
     .qr-section,
     .stats-section {
-        padding: 12px;
-        margin: 8px;
+        padding: 20px;
+        margin: 12px;
     }
     
     .stat-number {
-        font-size: 1.75rem;
+        font-size: 2rem;
+    }
+    
+    /* 🎯 Ultra-Big 터치 친화적 버튼 */
+    .btn,
+    .quiz-btn,
+    .admin-use-btn,
+    .back-btn {
+        padding: 28px 36px;
+        font-size: 18px;
+        min-height: 88px;
+        border-radius: 28px;
+        font-weight: 800;
     }
     
     .quiz-btn {
-        font-size: 16px;
-        padding: 14px 20px;
+        font-size: 24px;
+        padding: 36px 44px;
+        min-height: 108px;
+        border-radius: 32px;
+    }
+    
+    .admin-use-btn {
+        font-size: 20px;
+        padding: 32px 40px;
+        min-height: 96px;
+        border-radius: 30px;
     }
 }
 
@@ -671,23 +728,45 @@ textarea:focus {
     }
 }
 
-/* 터치 디바이스 최적화 */
+/* 🤏 Ultra-Touch 디바이스 최적화 */
 @media (hover: none) and (pointer: coarse) {
     .btn,
     .quiz-btn,
+    .admin-use-btn,
+    .back-btn {
+        min-height: 88px;
+        min-width: 88px;
+        padding: 28px 48px;
+        font-size: 20px;
+        font-weight: 800;
+        border-radius: 28px;
+    }
+    
+    .quiz-btn {
+        min-height: 108px;
+        padding: 36px 56px;
+        font-size: 26px;
+        border-radius: 32px;
+    }
+    
     .admin-use-btn {
-        min-height: 44px;
-        min-width: 44px;
+        min-height: 96px;
+        padding: 32px 52px;
+        font-size: 22px;
+        border-radius: 30px;
     }
     
     .answer-option {
-        min-height: 52px;
-        padding: 18px 16px;
+        min-height: 72px;
+        padding: 24px 20px;
+        font-size: 18px;
+        border-radius: 16px;
     }
     
     .step-card,
     .feature-card {
-        padding: 20px;
+        padding: 28px;
+        border-radius: 16px;
     }
 }
 
@@ -717,4 +796,178 @@ textarea:focus {
 
 ::-webkit-scrollbar-thumb:hover {
     background: var(--neutral-500);
+}
+
+/* 🎨 Ultra-Advanced 애니메이션 & 이펙트 */
+@keyframes pulse-glow {
+    0% {
+        box-shadow: 
+            0 16px 50px rgba(253, 127, 40, 0.4),
+            0 6px 20px rgba(0, 0, 0, 0.12),
+            inset 0 2px 0 rgba(255, 255, 255, 0.25);
+    }
+    100% {
+        box-shadow: 
+            0 20px 60px rgba(253, 127, 40, 0.6),
+            0 8px 25px rgba(0, 0, 0, 0.15),
+            inset 0 3px 0 rgba(255, 255, 255, 0.35);
+    }
+}
+
+@keyframes button-bounce {
+    0%, 20%, 50%, 80%, 100% {
+        transform: translateY(0) scale(1);
+    }
+    40% {
+        transform: translateY(-8px) scale(1.02);
+    }
+    60% {
+        transform: translateY(-4px) scale(1.01);
+    }
+}
+
+@keyframes float-gentle {
+    0%, 100% {
+        transform: translateY(0px);
+    }
+    50% {
+        transform: translateY(-10px);
+    }
+}
+
+@keyframes shimmer {
+    0% {
+        background-position: -200% center;
+    }
+    100% {
+        background-position: 200% center;
+    }
+}
+
+/* 🚀 Ultra-Enhanced 버튼 호버 효과 */
+.btn:hover,
+.quiz-btn:hover,
+.admin-use-btn:hover,
+.back-btn:hover {
+    animation: button-bounce 0.6s ease-in-out;
+    transform: translateY(-5px) scale(1.02);
+    filter: brightness(1.1) saturate(1.2);
+}
+
+.quiz-btn:hover {
+    background: linear-gradient(135deg, #00a085 0%, var(--secondary-green) 100%);
+    transform: translateY(-8px) scale(1.03) perspective(1000px) rotateX(2deg);
+    box-shadow: 
+        0 25px 70px rgba(0, 184, 148, 0.6),
+        0 10px 30px rgba(0, 0, 0, 0.2),
+        inset 0 4px 0 rgba(255, 255, 255, 0.4);
+}
+
+/* 🎯 Ultra-Modern 카드 호버 효과 */
+.admin-section:hover,
+.qr-section:hover,
+.stats-section:hover,
+.coupon-usage-card:hover {
+    animation: float-gentle 2s ease-in-out infinite;
+    box-shadow: 
+        0 20px 40px rgba(0, 102, 204, 0.15),
+        0 10px 25px rgba(0, 0, 0, 0.1);
+}
+
+/* 🌟 Ultra-Shimmer 효과 */
+.btn::after,
+.quiz-btn::after,
+.admin-use-btn::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(
+        90deg,
+        transparent,
+        rgba(255, 255, 255, 0.3),
+        transparent
+    );
+    background-size: 200% 100%;
+    animation: shimmer 2s infinite;
+    opacity: 0;
+    transition: opacity 0.3s;
+    border-radius: inherit;
+}
+
+.btn:hover::after,
+.quiz-btn:hover::after,
+.admin-use-btn:hover::after {
+    opacity: 1;
+}
+
+/* 💫 Ultra-Glow 효과 */
+.container {
+    animation: float-gentle 4s ease-in-out infinite;
+}
+
+.coupon-usage-card {
+    position: relative;
+    overflow: hidden;
+}
+
+.coupon-usage-card::after {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(
+        circle,
+        rgba(0, 184, 148, 0.1) 0%,
+        transparent 70%
+    );
+    animation: float-gentle 6s ease-in-out infinite reverse;
+    pointer-events: none;
+}
+
+/* 🎨 Ultra-Interactive 상태 표시 */
+.btn:active,
+.quiz-btn:active,
+.admin-use-btn:active {
+    transform: translateY(2px) scale(0.98);
+    box-shadow: 
+        0 5px 15px rgba(0, 0, 0, 0.2),
+        inset 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+/* 🏆 Ultra-Achievement 애니메이션 */
+.coupon-icon {
+    animation: button-bounce 2s ease-in-out infinite;
+}
+
+.score-display {
+    background: linear-gradient(135deg, var(--secondary-green), var(--primary-blue));
+    background-clip: text;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    font-weight: 900;
+    font-size: 1.5rem;
+    animation: shimmer 3s ease-in-out infinite;
+}
+
+/* 🔥 Ultra-Status Badge 애니메이션 */
+.coupon-status-badge {
+    animation: pulse-glow 2s ease-in-out infinite alternate;
+    position: relative;
+    overflow: hidden;
+}
+
+.coupon-status-badge::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+    animation: shimmer 2s infinite;
 }
