@@ -17,25 +17,31 @@ const firebaseConfig = {
     appId: "1:919599211664:web:fcc5deb2dd35beeb5de415"
   };
 
-// Firebase 초기화 (임시 비활성화)
+// Firebase 초기화 (강화된 오류 처리)
 let db = null;
 let firebaseEnabled = false;
 
-// Firebase 400 오류로 인해 임시 비활성화
-console.log("🔥 Firebase 임시 비활성화 - localStorage 전용 모드");
-
-// 나중에 Firebase 활성화하려면 아래 주석 해제
-/*
 try {
-    firebase.initializeApp(firebaseConfig);
+    // Firebase 앱이 이미 초기화되었는지 확인
+    if (firebase.apps.length === 0) {
+        firebase.initializeApp(firebaseConfig);
+    }
+    
     db = firebase.firestore();
-    firebaseEnabled = true;
-    console.log("🔥 Firebase 초기화 성공");
+    
+    // Firestore 설정 최적화
+    db.enableNetwork().then(() => {
+        firebaseEnabled = true;
+        console.log("🔥 Firebase 초기화 및 네트워크 연결 성공");
+    }).catch((error) => {
+        console.warn("🔥 Firebase 네트워크 연결 실패:", error.message);
+        firebaseEnabled = false;
+    });
+    
 } catch (error) {
-    console.warn("🔥 Firebase 초기화 실패:", error);
+    console.warn("🔥 Firebase 초기화 실패:", error.message);
     firebaseEnabled = false;
 }
-*/
 
 function generateQR() {
     const eventNameInput = document.getElementById('eventName').value;

@@ -12,25 +12,31 @@ const firebaseConfig = {
     appId: "1:919599211664:web:fcc5deb2dd35beeb5de415"
   };
 
-// Firebase 초기화 (임시 비활성화)
+// Firebase 초기화 (강화된 오류 처리)
 let db = null;
 let firebaseEnabled = false;
 
-// Firebase 400 오류로 인해 임시 비활성화
-console.log("🔥 Firebase 임시 비활성화 - localStorage 전용 모드");
-
-// 나중에 Firebase 활성화하려면 아래 주석 해제
-/*
 try {
-    firebase.initializeApp(firebaseConfig);
+    // Firebase 앱이 이미 초기화되었는지 확인
+    if (firebase.apps.length === 0) {
+        firebase.initializeApp(firebaseConfig);
+    }
+    
     db = firebase.firestore();
-    firebaseEnabled = true;
-    console.log("🔥 Firebase 초기화 성공");
+    
+    // Firestore 설정 최적화
+    db.enableNetwork().then(() => {
+        firebaseEnabled = true;
+        console.log("🔥 Firebase 초기화 및 네트워크 연결 성공");
+    }).catch((error) => {
+        console.warn("🔥 Firebase 네트워크 연결 실패:", error.message);
+        firebaseEnabled = false;
+    });
+    
 } catch (error) {
-    console.warn("🔥 Firebase 초기화 실패:", error);
+    console.warn("🔥 Firebase 초기화 실패:", error.message);
     firebaseEnabled = false;
 }
-*/
 
 function getEventNameFromUrl() {
     const urlParams = new URLSearchParams(window.location.search);
@@ -142,28 +148,34 @@ function autoRegisterParticipant() {
         localStorage.setItem('participants', JSON.stringify(participants));
         console.log("✅ localStorage에 참여자 등록 완료:", participant.anonymousId);
         
-        // Firebase에도 저장 시도 (완전히 비동기로, 실패해도 진행)
-        if (firebaseEnabled && db) {
-            setTimeout(() => {
+        // Firebase에도 저장 시도 (안전한 비동기 처리)
+        setTimeout(() => {
+            if (firebaseEnabled && db) {
                 try {
                     console.log("🔥 Firebase에 참여자 데이터 전송 시도...");
+                    
+                    // Firebase 연결 상태 재확인
                     db.collection("participants").add(participant)
                         .then((docRef) => {
                             console.log("✅ Firebase에 참여자 저장 완료:", docRef.id);
                         })
                         .catch((error) => {
-                            console.warn("⚠️ Firebase 저장 실패 (localStorage는 성공):", error.message);
-                            // Firebase 오류 시 완전히 비활성화
-                            firebaseEnabled = false;
+                            console.warn("⚠️ Firebase 저장 실패:", error.message);
+                            
+                            // 특정 오류 코드에 대해서만 비활성화
+                            if (error.code === 'permission-denied' || error.code === 'unavailable') {
+                                console.warn("🔥 Firebase 일시적으로 비활성화");
+                                firebaseEnabled = false;
+                            }
                         });
+                        
                 } catch (e) {
-                    console.warn("⚠️ Firebase 오류:", e.message);
-                    firebaseEnabled = false;
+                    console.warn("⚠️ Firebase 예외 오류:", e.message);
                 }
-            }, 100); // 0.1초 지연 후 Firebase 전송
-        } else {
-            console.log("📱 localStorage만 사용 (Firebase 비활성화)");
-        }
+            } else {
+                console.log("📱 localStorage만 사용 중");
+            }
+        }, 200); // 0.2초 지연으로 안정성 향상
         
         goToQuizDirectly();
     }
