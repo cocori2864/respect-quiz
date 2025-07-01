@@ -12,9 +12,19 @@ const firebaseConfig = {
     appId: "1:919599211664:web:fcc5deb2dd35beeb5de415"
   };
 
-// Firebase 초기화
-firebase.initializeApp(firebaseConfig);
-const db = firebase.firestore();
+// Firebase 초기화 (오류 처리 포함)
+let db = null;
+let firebaseEnabled = false;
+
+try {
+    firebase.initializeApp(firebaseConfig);
+    db = firebase.firestore();
+    firebaseEnabled = true;
+    console.log("🔥 Firebase 초기화 성공");
+} catch (error) {
+    console.warn("🔥 Firebase 초기화 실패:", error);
+    firebaseEnabled = false;
+}
 
 function getEventNameFromUrl() {
     const urlParams = new URLSearchParams(window.location.search);
@@ -126,26 +136,28 @@ function autoRegisterParticipant() {
         localStorage.setItem('participants', JSON.stringify(participants));
         console.log("✅ localStorage에 참여자 등록 완료:", participant.anonymousId);
         
-        // Firebase에도 저장 시도 (실패해도 진행)
-        setTimeout(() => {
-            try {
-                if (typeof db !== 'undefined' && db) {
+        // Firebase에도 저장 시도 (완전히 비동기로, 실패해도 진행)
+        if (firebaseEnabled && db) {
+            setTimeout(() => {
+                try {
                     console.log("🔥 Firebase에 참여자 데이터 전송 시도...");
                     db.collection("participants").add(participant)
                         .then((docRef) => {
                             console.log("✅ Firebase에 참여자 저장 완료:", docRef.id);
-                            console.log("📊 Firebase 저장된 데이터:", participant);
                         })
                         .catch((error) => {
-                            console.warn("⚠️ Firebase 저장 실패 (localStorage는 성공):", error);
+                            console.warn("⚠️ Firebase 저장 실패 (localStorage는 성공):", error.message);
+                            // Firebase 오류 시 완전히 비활성화
+                            firebaseEnabled = false;
                         });
-                } else {
-                    console.warn("⚠️ Firebase 연결 없음 (localStorage만 사용)");
+                } catch (e) {
+                    console.warn("⚠️ Firebase 오류:", e.message);
+                    firebaseEnabled = false;
                 }
-            } catch (e) {
-                console.warn("⚠️ Firebase 오류:", e.message);
-            }
-        }, 500); // 0.5초 지연 후 Firebase 전송
+            }, 100); // 0.1초 지연 후 Firebase 전송
+        } else {
+            console.log("📱 localStorage만 사용 (Firebase 비활성화)");
+        }
         
         goToQuizDirectly();
     }

@@ -17,9 +17,19 @@ const firebaseConfig = {
     appId: "1:919599211664:web:fcc5deb2dd35beeb5de415"
   };
 
-// Firebase 초기화
-firebase.initializeApp(firebaseConfig);
-const db = firebase.firestore();
+// Firebase 초기화 (오류 처리 포함)
+let db = null;
+let firebaseEnabled = false;
+
+try {
+    firebase.initializeApp(firebaseConfig);
+    db = firebase.firestore();
+    firebaseEnabled = true;
+    console.log("🔥 Firebase 초기화 성공");
+} catch (error) {
+    console.warn("🔥 Firebase 초기화 실패:", error);
+    firebaseEnabled = false;
+}
 
 function generateQR() {
     const eventNameInput = document.getElementById('eventName').value;
@@ -270,7 +280,7 @@ function refreshData() {
 
 function listenToParticipants() {
     try {
-        if (typeof db !== 'undefined') {
+        if (firebaseEnabled && db) {
             console.log('🔥 Firebase 실시간 리스너 시작');
             db.collection("participants").onSnapshot((querySnapshot) => {
                 const firebaseParticipants = [];
@@ -297,16 +307,18 @@ function listenToParticipants() {
                 document.getElementById('firebaseStatus').style.color = 'green';
             }, (error) => {
                 console.warn('🔥 Firebase 리스너 오류:', error);
+                firebaseEnabled = false;
                 document.getElementById('firebaseStatus').textContent = '🔴 Firebase 연결 실패';
                 document.getElementById('firebaseStatus').style.color = 'red';
             });
         } else {
-            console.warn('🔥 Firebase 초기화 안됨');
-            document.getElementById('firebaseStatus').textContent = '⚪ Firebase 비활성화';
+            console.warn('🔥 Firebase 비활성화됨');
+            document.getElementById('firebaseStatus').textContent = '⚪ localStorage만 사용';
             document.getElementById('firebaseStatus').style.color = 'gray';
         }
     } catch (error) {
         console.error('🔥 Firebase 리스너 설정 실패:', error);
+        firebaseEnabled = false;
         document.getElementById('firebaseStatus').textContent = '🔴 Firebase 오류';
         document.getElementById('firebaseStatus').style.color = 'red';
     }
