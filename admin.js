@@ -469,7 +469,7 @@ setInterval(function() {
     try {
         const currentData = localStorage.getItem('participants');
         const currentParticipants = currentData ? JSON.parse(currentData) : [];
-        const currentHash = currentData ? btoa(currentData).substring(0, 16) : '';
+        const currentHash = currentData ? currentData.length.toString() + '_' + currentData.substring(0, 50).replace(/[^\x00-\x7F]/g, "").length : '';
         
         // 참여자 수 변경 감지
         if (currentParticipants.length !== lastParticipantCount) {
