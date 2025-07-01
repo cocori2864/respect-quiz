@@ -148,34 +148,56 @@ function autoRegisterParticipant() {
         localStorage.setItem('participants', JSON.stringify(participants));
         console.log("✅ localStorage에 참여자 등록 완료:", participant.anonymousId);
         
-        // Firebase에도 저장 시도 (안전한 비동기 처리)
+        // Firebase에도 저장 시도 (강화된 디버깅)
         setTimeout(() => {
             if (firebaseEnabled && db) {
                 try {
-                    console.log("🔥 Firebase에 참여자 데이터 전송 시도...");
+                    console.log("🔥 Firebase 저장 시도:", {
+                        projectId: db.app.options.projectId,
+                        참여자데이터: participant,
+                        firebaseEnabled: firebaseEnabled,
+                        db객체: !!db
+                    });
                     
-                    // Firebase 연결 상태 재확인
+                    // Firebase 연결 상태 재확인 및 저장
                     db.collection("participants").add(participant)
                         .then((docRef) => {
-                            console.log("✅ Firebase에 참여자 저장 완료:", docRef.id);
+                            console.log("✅ Firebase 저장 성공!", {
+                                문서ID: docRef.id,
+                                경로: docRef.path,
+                                저장된데이터: participant
+                            });
                         })
                         .catch((error) => {
-                            console.warn("⚠️ Firebase 저장 실패:", error.message);
+                            console.error("❌ Firebase 저장 실패 상세:", {
+                                에러코드: error.code,
+                                에러메시지: error.message,
+                                전체에러: error,
+                                프로젝트ID: db.app.options.projectId
+                            });
                             
-                            // 특정 오류 코드에 대해서만 비활성화
-                            if (error.code === 'permission-denied' || error.code === 'unavailable') {
-                                console.warn("🔥 Firebase 일시적으로 비활성화");
+                            // 권한 오류인지 확인
+                            if (error.code === 'permission-denied') {
+                                console.error("🚫 Firebase 보안 규칙 문제 - Firestore 규칙을 확인하세요!");
+                            } else if (error.code === 'unavailable') {
+                                console.error("🔌 Firebase 서버 연결 문제");
                                 firebaseEnabled = false;
                             }
                         });
                         
                 } catch (e) {
-                    console.warn("⚠️ Firebase 예외 오류:", e.message);
+                    console.error("⚠️ Firebase 예외 오류:", {
+                        에러: e.message,
+                        스택: e.stack
+                    });
                 }
             } else {
-                console.log("📱 localStorage만 사용 중");
+                console.log("📱 Firebase 비활성화 상태:", {
+                    firebaseEnabled: firebaseEnabled,
+                    db존재: !!db
+                });
             }
-        }, 200); // 0.2초 지연으로 안정성 향상
+        }, 500); // 0.5초 지연으로 충분한 초기화 시간 확보
         
         goToQuizDirectly();
     }

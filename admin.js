@@ -353,12 +353,54 @@ function mergeParticipants(localParticipants, firebaseParticipants) {
     return merged;
 }
 
+// Firebase 연결 테스트 함수
+function testFirebaseConnection() {
+    if (!firebaseEnabled || !db) {
+        console.error("🔥 Firebase가 비활성화된 상태입니다.");
+        alert("Firebase가 비활성화된 상태입니다. 콘솔을 확인해주세요.");
+        return;
+    }
+    
+    console.log("🔥 Firebase 연결 테스트 시작...");
+    
+    const testData = {
+        test: true,
+        timestamp: new Date().toISOString(),
+        message: "Firebase 연결 테스트"
+    };
+    
+    db.collection("test").add(testData)
+        .then((docRef) => {
+            console.log("✅ Firebase 테스트 성공:", docRef.id);
+            alert("Firebase 연결 성공! 문서 ID: " + docRef.id);
+            
+            // 테스트 문서 삭제
+            return docRef.delete();
+        })
+        .then(() => {
+            console.log("🗑️ 테스트 문서 삭제 완료");
+        })
+        .catch((error) => {
+            console.error("❌ Firebase 테스트 실패:", error);
+            alert("Firebase 테스트 실패: " + error.message);
+        });
+}
+
 // 초기화
 document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('eventName').value = eventName;
     generateQR();
     refreshData();
     listenToParticipants();
+    
+    // Firebase 테스트 버튼 추가
+    setTimeout(() => {
+        const testButton = document.createElement('button');
+        testButton.textContent = '🔥 Firebase 연결 테스트';
+        testButton.onclick = testFirebaseConnection;
+        testButton.style.cssText = 'margin: 10px; padding: 8px 16px; background: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer;';
+        document.querySelector('.stats-section').appendChild(testButton);
+    }, 1000);
     
     // 2초마다 데이터 새로고침 (더 빠른 반영)
     setInterval(refreshData, 2000);
