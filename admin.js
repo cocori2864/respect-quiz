@@ -355,6 +355,13 @@ function mergeParticipants(localParticipants, firebaseParticipants) {
 
 // Firebase 연결 테스트 함수
 function testFirebaseConnection() {
+    console.log("🔥 Firebase 상태 점검:", {
+        firebaseEnabled: firebaseEnabled,
+        db존재: !!db,
+        firebaseApps: firebase.apps.length,
+        projectId: db ? db.app.options.projectId : 'N/A'
+    });
+    
     if (!firebaseEnabled || !db) {
         console.error("🔥 Firebase가 비활성화된 상태입니다.");
         alert("Firebase가 비활성화된 상태입니다. 콘솔을 확인해주세요.");
@@ -366,23 +373,43 @@ function testFirebaseConnection() {
     const testData = {
         test: true,
         timestamp: new Date().toISOString(),
-        message: "Firebase 연결 테스트"
+        message: "Firebase 연결 테스트",
+        randomId: Math.random().toString(36).substr(2, 9)
     };
     
-    db.collection("test").add(testData)
-        .then((docRef) => {
-            console.log("✅ Firebase 테스트 성공:", docRef.id);
-            alert("Firebase 연결 성공! 문서 ID: " + docRef.id);
+    console.log("📤 전송할 테스트 데이터:", testData);
+    
+    // 먼저 간단한 읽기 테스트
+    db.collection("test").limit(1).get()
+        .then((querySnapshot) => {
+            console.log("✅ Firebase 읽기 테스트 성공. 문서 수:", querySnapshot.size);
             
-            // 테스트 문서 삭제
-            return docRef.delete();
+            // 이제 쓰기 테스트
+            return db.collection("test").add(testData);
         })
-        .then(() => {
-            console.log("🗑️ 테스트 문서 삭제 완료");
+        .then((docRef) => {
+            console.log("✅ Firebase 쓰기 테스트 성공:", {
+                문서ID: docRef.id,
+                경로: docRef.path,
+                데이터: testData
+            });
+            alert("Firebase 연결 성공!\n문서 ID: " + docRef.id);
+            
+            // Firebase 콘솔에서 확인할 수 있도록 잠시 대기 후 삭제
+            setTimeout(() => {
+                docRef.delete().then(() => {
+                    console.log("🗑️ 테스트 문서 삭제 완료");
+                });
+            }, 3000); // 3초 후 삭제
+            
         })
         .catch((error) => {
-            console.error("❌ Firebase 테스트 실패:", error);
-            alert("Firebase 테스트 실패: " + error.message);
+            console.error("❌ Firebase 테스트 실패:", {
+                code: error.code,
+                message: error.message,
+                stack: error.stack
+            });
+            alert("Firebase 테스트 실패:\n" + error.code + ": " + error.message);
         });
 }
 
