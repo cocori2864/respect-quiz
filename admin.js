@@ -12,7 +12,7 @@ const firebaseConfig = {
     apiKey: "AIzaSyBM2gx4IIBUJnfnKMgCrT6gEU1rHsxSvpw",
     authDomain: "respect-quiz.firebaseapp.com",
     projectId: "respect-quiz",
-    storageBucket: "respect-quiz.appspot.com", // ← 이 부분!
+    storageBucket: "respect-quiz.firebasestorage.app",
     messagingSenderId: "919599211664",
     appId: "1:919599211664:web:fcc5deb2dd35beeb5de415"
   };
@@ -269,23 +269,64 @@ function refreshData() {
 }
 
 function listenToParticipants() {
-  db.collection("participants").onSnapshot((querySnapshot) => {
-    const participants = [];
-    querySnapshot.forEach((doc) => {
-      participants.push(doc.data());
+    try {
+        if (typeof db !== 'undefined') {
+            console.log('🔥 Firebase 실시간 리스너 시작');
+            db.collection("participants").onSnapshot((querySnapshot) => {
+                const firebaseParticipants = [];
+                querySnapshot.forEach((doc) => {
+                    firebaseParticipants.push({
+                        id: doc.id,
+                        ...doc.data()
+                    });
+                });
+                
+                console.log('🔥 Firebase에서 받은 참여자:', firebaseParticipants.length, '명');
+                
+                // Firebase 데이터를 localStorage와 병합
+                const localParticipants = JSON.parse(localStorage.getItem('participants')) || [];
+                const mergedParticipants = mergeParticipants(localParticipants, firebaseParticipants);
+                
+                // 병합된 데이터로 통계 업데이트
+                participants = mergedParticipants;
+                localStorage.setItem('participants', JSON.stringify(participants));
+                updateStats();
+                
+                // Firebase 연결 상태 표시
+                document.getElementById('firebaseStatus').textContent = '🟢 Firebase 연결됨';
+                document.getElementById('firebaseStatus').style.color = 'green';
+            }, (error) => {
+                console.warn('🔥 Firebase 리스너 오류:', error);
+                document.getElementById('firebaseStatus').textContent = '🔴 Firebase 연결 실패';
+                document.getElementById('firebaseStatus').style.color = 'red';
+            });
+        } else {
+            console.warn('🔥 Firebase 초기화 안됨');
+            document.getElementById('firebaseStatus').textContent = '⚪ Firebase 비활성화';
+            document.getElementById('firebaseStatus').style.color = 'gray';
+        }
+    } catch (error) {
+        console.error('🔥 Firebase 리스너 설정 실패:', error);
+        document.getElementById('firebaseStatus').textContent = '🔴 Firebase 오류';
+        document.getElementById('firebaseStatus').style.color = 'red';
+    }
+}
+
+function mergeParticipants(localParticipants, firebaseParticipants) {
+    const merged = [...localParticipants];
+    
+    firebaseParticipants.forEach(fbParticipant => {
+        const existingIndex = merged.findIndex(p => p.deviceId === fbParticipant.deviceId);
+        if (existingIndex === -1) {
+            // Firebase에만 있는 참여자 추가
+            merged.push(fbParticipant);
+        } else {
+            // 기존 참여자 정보 업데이트 (Firebase 우선)
+            merged[existingIndex] = { ...merged[existingIndex], ...fbParticipant };
+        }
     });
-    // 중복 제거, 집계 등 기존 로직 사용
-    const uniqueParticipants = participants.filter((p, i, arr) =>
-      i === arr.findIndex(x => x.deviceId === p.deviceId)
-    );
-    const totalParticipants = uniqueParticipants.length;
-    const fiveMinutesAgo = Date.now() - (5 * 60 * 1000);
-    const recentParticipants = uniqueParticipants.filter(p =>
-      new Date(p.timestamp).getTime() > fiveMinutesAgo
-    ).length;
-    document.getElementById('totalParticipants').textContent = totalParticipants;
-    document.getElementById('recentParticipants').textContent = recentParticipants;
-  });
+    
+    return merged;
 }
 
 // 초기화

@@ -7,7 +7,7 @@ const firebaseConfig = {
     apiKey: "AIzaSyBM2gx4IIBUJnfnKMgCrT6gEU1rHsxSvpw",
     authDomain: "respect-quiz.firebaseapp.com",
     projectId: "respect-quiz",
-    storageBucket: "respect-quiz.appspot.com", // ← 이 부분!
+    storageBucket: "respect-quiz.firebasestorage.app",
     messagingSenderId: "919599211664",
     appId: "1:919599211664:web:fcc5deb2dd35beeb5de415"
   };
@@ -99,37 +99,56 @@ function generateDeviceId() {
 function autoRegisterParticipant() {
     const deviceId = generateDeviceId();
     const eventName = getEventNameFromUrl();
-    // Firestore에서 중복 참여 체크
-    db.collection("participants").where("deviceId", "==", deviceId).get().then((querySnapshot) => {
-        if (!querySnapshot.empty) {
-            // 이미 참여한 디바이스 - 바로 퀴즈로 이동
-            const existingParticipant = querySnapshot.docs[0].data();
-            console.log('기존 참여자 감지:', existingParticipant.anonymousId);
-            goToQuizDirectly();
-        } else {
-            // 새로운 참여자 Firestore에 등록
-            const participant = {
-                id: Date.now(),
-                deviceId: deviceId,
-                timestamp: new Date().toISOString(),
-                eventName: eventName,
-                anonymousId: 'USER_' + deviceId.substring(0, 8),
-                isMobile: isMobileDevice(),
-                accessSource: getAccessSource(),
-                userAgent: navigator.userAgent,
-                screenSize: screen.width + 'x' + screen.height
-            };
-            db.collection("participants").add(participant)
-                .then((docRef) => {
-                    console.log("✅ Firestore에 참여자 등록 완료:", docRef.id);
-                    goToQuizDirectly();
-                })
-                .catch((error) => {
-                    console.error("❌ Firestore 등록 실패:", error);
-                    alert("참여 등록에 실패했습니다. 다시 시도해 주세요.");
-                });
-        }
-    });
+    
+    // localStorage에서 중복 참여 체크
+    const participants = JSON.parse(localStorage.getItem('participants')) || [];
+    const existingParticipant = participants.find(p => p.deviceId === deviceId);
+    
+    if (existingParticipant) {
+        // 이미 참여한 디바이스 - 바로 퀴즈로 이동
+        console.log('기존 참여자 감지:', existingParticipant.anonymousId);
+        goToQuizDirectly();
+    } else {
+        // 새로운 참여자 localStorage에 등록
+        const participant = {
+            id: Date.now(),
+            deviceId: deviceId,
+            timestamp: new Date().toISOString(),
+            eventName: eventName,
+            anonymousId: 'USER_' + deviceId.substring(0, 8),
+            isMobile: isMobileDevice(),
+            accessSource: getAccessSource(),
+            userAgent: navigator.userAgent,
+            screenSize: screen.width + 'x' + screen.height
+        };
+        
+        participants.push(participant);
+        localStorage.setItem('participants', JSON.stringify(participants));
+        console.log("✅ localStorage에 참여자 등록 완료:", participant.anonymousId);
+        
+        // Firebase에도 저장 시도 (실패해도 진행)
+        setTimeout(() => {
+            try {
+                if (typeof db !== 'undefined' && db) {
+                    console.log("🔥 Firebase에 참여자 데이터 전송 시도...");
+                    db.collection("participants").add(participant)
+                        .then((docRef) => {
+                            console.log("✅ Firebase에 참여자 저장 완료:", docRef.id);
+                            console.log("📊 Firebase 저장된 데이터:", participant);
+                        })
+                        .catch((error) => {
+                            console.warn("⚠️ Firebase 저장 실패 (localStorage는 성공):", error);
+                        });
+                } else {
+                    console.warn("⚠️ Firebase 연결 없음 (localStorage만 사용)");
+                }
+            } catch (e) {
+                console.warn("⚠️ Firebase 오류:", e.message);
+            }
+        }, 500); // 0.5초 지연 후 Firebase 전송
+        
+        goToQuizDirectly();
+    }
 }
 
 function showWelcomeMessage(participant) {
