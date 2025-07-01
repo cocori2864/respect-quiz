@@ -469,19 +469,12 @@ setInterval(function() {
     try {
         const currentData = localStorage.getItem('participants');
         const currentParticipants = currentData ? JSON.parse(currentData) : [];
-        const currentHash = currentData ? currentData.length.toString() + '_' + currentData.substring(0, 50).replace(/[^\x00-\x7F]/g, "").length : '';
+        const currentHash = currentData ? currentData.length.toString() + '_' + Date.now().toString().substring(-3) : '';
         
         // 참여자 수 변경 감지
         if (currentParticipants.length !== lastParticipantCount) {
             console.log('🔄 참여자 수 변경 감지:', lastParticipantCount, '→', currentParticipants.length);
             lastParticipantCount = currentParticipants.length;
-            refreshData();
-        }
-        
-        // 데이터 내용 변경 감지 (참여자 수는 같지만 내용이 바뀐 경우)
-        if (currentHash !== lastParticipantHash) {
-            console.log('📊 참여자 데이터 변경 감지');
-            lastParticipantHash = currentHash;
             refreshData();
         }
         
@@ -496,7 +489,7 @@ setInterval(function() {
     } catch (e) {
         console.error('참여자 수 체크 오류:', e);
     }
-}, 1000); // 1초마다 체크
+}, 2000); // 2초마다 체크
 
 // 강제 새로고침 함수
 function forceRefreshStats() {
