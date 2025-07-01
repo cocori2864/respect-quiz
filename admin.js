@@ -422,12 +422,34 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Firebase 테스트 버튼 추가
     setTimeout(() => {
-        const testButton = document.createElement('button');
-        testButton.textContent = '🔥 Firebase 연결 테스트';
-        testButton.onclick = testFirebaseConnection;
-        testButton.style.cssText = 'margin: 10px; padding: 8px 16px; background: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer;';
-        document.querySelector('.stats-section').appendChild(testButton);
-    }, 1000);
+        try {
+            const testButton = document.createElement('button');
+            testButton.textContent = '🔥 Firebase 연결 테스트';
+            testButton.onclick = testFirebaseConnection;
+            testButton.style.cssText = 'margin: 10px; padding: 8px 16px; background: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer;';
+            
+            // 여러 위치에 버튼 추가 시도
+            const statsSection = document.querySelector('.stats-section');
+            const debugSection = document.querySelector('.debug-section');
+            const container = document.querySelector('.container');
+            
+            if (statsSection) {
+                statsSection.appendChild(testButton);
+                console.log('✅ Firebase 테스트 버튼 추가됨 (.stats-section)');
+            } else if (debugSection) {
+                debugSection.appendChild(testButton);
+                console.log('✅ Firebase 테스트 버튼 추가됨 (.debug-section)');
+            } else if (container) {
+                container.appendChild(testButton);
+                console.log('✅ Firebase 테스트 버튼 추가됨 (.container)');
+            } else {
+                document.body.appendChild(testButton);
+                console.log('✅ Firebase 테스트 버튼 추가됨 (body)');
+            }
+        } catch (e) {
+            console.error('Firebase 테스트 버튼 추가 실패:', e);
+        }
+    }, 2000); // 2초로 늘림
     
     // 2초마다 데이터 새로고침 (더 빠른 반영)
     setInterval(refreshData, 2000);
