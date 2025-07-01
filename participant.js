@@ -12,10 +12,15 @@ const firebaseConfig = {
     appId: "1:919599211664:web:fcc5deb2dd35beeb5de415"
   };
 
-// Firebase 초기화 (오류 처리 포함)
+// Firebase 초기화 (임시 비활성화)
 let db = null;
 let firebaseEnabled = false;
 
+// Firebase 400 오류로 인해 임시 비활성화
+console.log("🔥 Firebase 임시 비활성화 - localStorage 전용 모드");
+
+// 나중에 Firebase 활성화하려면 아래 주석 해제
+/*
 try {
     firebase.initializeApp(firebaseConfig);
     db = firebase.firestore();
@@ -25,6 +30,7 @@ try {
     console.warn("🔥 Firebase 초기화 실패:", error);
     firebaseEnabled = false;
 }
+*/
 
 function getEventNameFromUrl() {
     const urlParams = new URLSearchParams(window.location.search);
