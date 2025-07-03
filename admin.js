@@ -1,9 +1,8 @@
 /**
- * 관리자 대시보드 JavaScript
- * 기능: QR 코드 생성, Firebase 실시간 참여자 통계 모니터링
+ * 퀴즈 관리자 페이지 스크립트 (Firebase 기반)
  */
 
-// Firebase 설정
+// [중요] 이 부분은 나중에 본인의 Firebase 프로젝트 설정으로 교체해주세요.
 const firebaseConfig = {
     apiKey: "AIzaSyBM2gx4IIBUJnfnKMgCrT6gEU1rHsxSvpw",
     authDomain: "respect-quiz.firebaseapp.com",
@@ -13,73 +12,95 @@ const firebaseConfig = {
     appId: "1:919599211664:web:fcc5deb2dd35beeb5de415"
 };
 
-// Firebase 초기화
+// --- Firebase 초기화 ---
+let db;
 try {
-    firebase.initializeApp(firebaseConfig);
+    const app = firebase.initializeApp(firebaseConfig);
+    db = firebase.firestore();
+    console.log("Firebase가 성공적으로 초기화되었습니다.");
 } catch (e) {
-    console.error("Firebase 초기화 오류:", e.message);
+    console.error("Firebase 초기화 중 오류 발생:", e);
+    alert("Firebase 초기화에 실패했습니다. 콘솔을 확인해주세요.");
 }
 
-const db = firebase.firestore();
-
+/**
+ * QR 코드를 생성하는 함수
+ */
 function generateQR() {
-    const eventName = document.getElementById('eventName').value || '서울아산병원 소통 감수성 퀴즈';
-    localStorage.setItem('eventName', eventName); // 참여자 페이지에서 행사 이름을 알 수 있도록 저장
+    const eventName = document.getElementById('eventName').value;
+    if (!eventName) {
+        alert("행사 이름을 입력해주세요.");
+        return;
+    }
     
-    const currentUrl = window.location.href;
-    const baseUrl = currentUrl.substring(0, currentUrl.lastIndexOf('/') + 1);
-    const participantUrl = `${baseUrl}participant.html?event=${encodeURIComponent(eventName)}`;
+    // QR코드는 참여자 페이지로 연결됩니다.
+    const baseUrl = window.location.href.substring(0, window.location.href.lastIndexOf('/'));
+    const participantUrl = `${baseUrl}/participant.html?event=${encodeURIComponent(eventName)}`;
     
     const qrCodeContainer = document.getElementById('qrcode');
-    qrCodeContainer.innerHTML = '';
+    qrCodeContainer.innerHTML = ''; // 이전 QR 코드 삭제
+    
     new QRCode(qrCodeContainer, {
         text: participantUrl,
-        width: 256,
-        height: 256
+        width: 200,
+        height: 200,
     });
     
-    document.getElementById('participantUrl').innerHTML = `<strong>참여자 접속 URL:</strong><br><a href="${participantUrl}" target="_blank">${participantUrl}</a>`;
+    document.getElementById('participantUrl').innerHTML = `
+        <strong>참여자 접속 주소:</strong><br>
+        <a href="${participantUrl}" target="_blank">${participantUrl}</a>
+    `;
+    
+    console.log(`QR 코드가 생성되었습니다: ${participantUrl}`);
 }
 
+/**
+ * Firebase에서 참여자 데이터를 실시간으로 수신하고 통계를 업데이트하는 함수
+ */
 function listenToParticipants() {
+    if (!db) return;
+
     const firebaseStatus = document.getElementById('firebaseStatus');
-    
-    db.collection("participants").onSnapshot((querySnapshot) => {
-        firebaseStatus.textContent = '🟢 Firebase 실시간 연결됨';
-        firebaseStatus.style.color = 'green';
-        
-        const participants = [];
-        querySnapshot.forEach((doc) => {
-            participants.push(doc.data());
-        });
-        
-        updateStats(participants);
 
-    }, (error) => {
-        firebaseStatus.textContent = '🔴 Firebase 연결 실패';
-        firebaseStatus.style.color = 'red';
-        console.error("Firebase 데이터 수신 오류: ", error);
-    });
+    db.collection("participants").onSnapshot(
+        (querySnapshot) => {
+            firebaseStatus.textContent = '🟢 Firebase 실시간 연결됨';
+            firebaseStatus.style.color = '#28a745';
+
+            const participants = [];
+            querySnapshot.forEach((doc) => {
+                participants.push(doc.data());
+            });
+
+            updateStats(participants);
+        },
+        (error) => {
+            firebaseStatus.textContent = '🔴 Firebase 연결 실패';
+            firebaseStatus.style.color = '#dc3545';
+            console.error("Firebase 데이터 수신 오류:", error);
+            alert("Firebase 데이터 수신에 실패했습니다. 콘솔을 확인하고 보안 규칙을 점검해주세요.");
+        }
+    );
 }
 
+/**
+ * 통계 UI를 업데이트하는 함수
+ * @param {Array} participants - 참여자 데이터 배열
+ */
 function updateStats(participants) {
-    const totalParticipants = participants.length;
-    const fiveMinutesAgo = Date.now() - (5 * 60 * 1000);
+    const totalCount = participants.length;
     
-    const recentParticipants = participants.filter(p => {
-        return new Date(p.timestamp).getTime() > fiveMinutesAgo;
-    }).length;
+    const fiveMinutesAgo = Date.now() - (5 * 60 * 1000);
+    const recentCount = participants.filter(p => new Date(p.timestamp).getTime() > fiveMinutesAgo).length;
 
-    document.getElementById('totalParticipants').textContent = totalParticipants;
-    document.getElementById('recentParticipants').textContent = recentParticipants;
+    document.getElementById('totalParticipants').textContent = totalCount;
+    document.getElementById('recentParticipants').textContent = recentCount;
 }
 
-// 초기화
+// 페이지가 로드되면 바로 실행
 document.addEventListener('DOMContentLoaded', () => {
-    const savedEventName = localStorage.getItem('eventName');
-    if (savedEventName) {
-        document.getElementById('eventName').value = savedEventName;
-    }
+    // 기본 QR 코드 생성
     generateQR();
+    // Firebase 리스너 시작
     listenToParticipants();
 });

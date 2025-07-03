@@ -3,22 +3,22 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>서울아산병원 소통 감수성 퀴즈 - 참여</title>
+    <title>퀴즈 참여</title>
     <link rel="stylesheet" href="styles.css">
+    <!-- Firebase 라이브러리 -->
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 </head>
 <body>
     <div class="container">
-        <h1 id="eventTitle">행사 참여</h1>
-        
-        <div id="autoRegister" class="auto-register">
+        <h1 id="eventTitle">퀴즈 참여</h1>
+        <div class="auto-register">
             <h2>참여 확인 중...</h2>
             <div class="loading-spinner"></div>
             <p>잠시만 기다려주세요. 퀴즈 페이지로 이동합니다.</p>
+            <p id="errorMessage" style="color: red;"></p>
         </div>
     </div>
-
     <script src="participant.js"></script>
 </body>
 </html>

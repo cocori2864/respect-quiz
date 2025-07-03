@@ -3,68 +3,49 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>서울아산병원 소통 감수성 퀴즈</title>
+    <title>소통 감수성 퀴즈</title>
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
     <div class="container">
-        <h1 id="quizTitle">퀴즈 도전</h1>
+        <h1 id="quizTitle">소통 감수성 퀴즈</h1>
         
         <!-- 퀴즈 시작 화면 -->
-        <div id="quizStart" class="quiz-start">
-            <h2>🧠 퀴즈에 도전해보세요!</h2>
-            <div class="quiz-info">
-                <p>📝 총 5문제의 객관식 문제</p>
-                <p>🎯 60점 이상 시 쿠폰 발급</p>
-                <p>🔄 60점 미만 시 재도전 가능</p>
-            </div>
+        <div id="quizStart" class="quiz-section">
+            <h2>🧠 퀴즈에 도전하세요!</h2>
+            <p>총 5문제가 출제되며, 60점 이상이면 쿠폰이 발급됩니다.</p>
             <button onclick="startQuiz()" class="start-btn">퀴즈 시작</button>
         </div>
 
         <!-- 퀴즈 진행 화면 -->
-        <div id="quizProgress" class="quiz-progress" style="display: none;">
+        <div id="quizProgress" class="quiz-section" style="display: none;">
             <div class="quiz-header">
-                <div class="question-counter">
-                    <span id="currentQuestion">1</span> / <span id="totalQuestions">5</span>
-                </div>
-                <div class="progress-bar">
-                    <div id="progressFill" class="progress-fill"></div>
-                </div>
+                <span><span id="currentQuestion">1</span> / 5</span>
+                <div class="progress-bar"><div id="progressFill"></div></div>
             </div>
-            
             <div class="question-card">
-                <h3 id="questionText">문제가 여기에 표시됩니다</h3>
-                <div id="answerOptions" class="answer-options">
-                    <!-- 답안 선택지가 여기에 표시됩니다 -->
-                </div>
+                <h3 id="questionText"></h3>
+                <div id="answerOptions"></div>
             </div>
-            
-            <button id="nextBtn" onclick="nextQuestion()" disabled class="next-btn">다음 문제</button>
+            <button id="nextBtn" onclick="nextQuestion()" disabled>다음 문제</button>
         </div>
 
         <!-- 결과 화면 -->
-        <div id="quizResult" class="quiz-result" style="display: none;">
-            <div class="result-card">
-                <h2>🎉 퀴즈 완료!</h2>
-                <div class="score-display">
-                    <div class="score-circle">
-                        <span id="finalScore">0</span>점
-                    </div>
-                </div>
-                
-                <div id="passResult" class="pass-result" style="display: none;">
-                    <p class="pass-message">축하합니다! 쿠폰을 획득하셨습니다! 🎟️</p>
-                    <button onclick="getCoupon()" class="coupon-btn">쿠폰 받기</button>
-                </div>
-                
-                <div id="failResult" class="fail-result" style="display: none;">
-                    <p class="fail-message">아쉽네요. 60점 이상이어야 쿠폰을 받을 수 있어요 😅</p>
-                    <button onclick="retryQuiz()" class="retry-btn">다시 도전</button>
-                </div>
+        <div id="quizResult" class="quiz-section" style="display: none;">
+            <h2>🎉 퀴즈 완료!</h2>
+            <div class="score-display">
+                <span id="finalScore">0</span>점
+            </div>
+            <div id="passResult" style="display: none;">
+                <p>축하합니다! 쿠폰을 받으세요. 🎟️</p>
+                <button onclick="getCoupon()" class="coupon-btn">쿠폰 받기</button>
+            </div>
+            <div id="failResult" style="display: none;">
+                <p>아쉽네요. 60점 미만입니다. 😅</p>
+                <button onclick="retryQuiz()" class="retry-btn">다시 도전</button>
             </div>
         </div>
     </div>
-
     <script src="quiz.js"></script>
 </body>
 </html>
