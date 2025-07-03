@@ -1,95 +1,85 @@
 /**
  * 관리자 대시보드 JavaScript
- * 기능: QR 코드 생성, 참여자 통계 모니터링
+ * 기능: QR 코드 생성, Firebase 실시간 참여자 통계 모니터링
  */
 
-// 전역 변수
-let participants = [];
-let eventName = '서울아산병원 소통 감수성 퀴즈';
+// Firebase 설정
+const firebaseConfig = {
+    apiKey: "AIzaSyBM2gx4IIBUJnfnKMgCrT6gEU1rHsxSvpw",
+    authDomain: "respect-quiz.firebaseapp.com",
+    projectId: "respect-quiz",
+    storageBucket: "respect-quiz.appspot.com",
+    messagingSenderId: "919599211664",
+    appId: "1:919599211664:web:fcc5deb2dd35beeb5de415"
+};
+
+// Firebase 초기화
+try {
+    firebase.initializeApp(firebaseConfig);
+} catch (e) {
+    console.error("Firebase 초기화 오류:", e.message);
+}
+
+const db = firebase.firestore();
 
 function generateQR() {
-    const eventNameInput = document.getElementById('eventName').value;
-    if (eventNameInput) {
-        eventName = eventNameInput;
-        localStorage.setItem('eventName', eventName);
-    }
+    const eventName = document.getElementById('eventName').value || '서울아산병원 소통 감수성 퀴즈';
+    localStorage.setItem('eventName', eventName); // 참여자 페이지에서 행사 이름을 알 수 있도록 저장
     
-    // 현재 페이지의 도메인과 경로를 기반으로 참여자 URL 생성
     const currentUrl = window.location.href;
     const baseUrl = currentUrl.substring(0, currentUrl.lastIndexOf('/') + 1);
-    const participantUrl = baseUrl + 'participant.html?event=' + encodeURIComponent(eventName) + '&source=qr';
+    const participantUrl = `${baseUrl}participant.html?event=${encodeURIComponent(eventName)}`;
     
-    // QR 코드 생성
     const qrCodeContainer = document.getElementById('qrcode');
-    qrCodeContainer.innerHTML = ''; // 기존 QR 코드 삭제
+    qrCodeContainer.innerHTML = '';
     new QRCode(qrCodeContainer, {
         text: participantUrl,
         width: 256,
-        height: 256,
-        colorDark: "#000000",
-        colorLight: "#ffffff",
-        correctLevel: QRCode.CorrectLevel.H
+        height: 256
     });
     
-    // URL 표시
-    document.getElementById('participantUrl').innerHTML = 
-        `<strong>참여자 접속 URL:</strong><br><a href="${participantUrl}" target="_blank" style="word-break: break-all;">${participantUrl}</a>`;
+    document.getElementById('participantUrl').innerHTML = `<strong>참여자 접속 URL:</strong><br><a href="${participantUrl}" target="_blank">${participantUrl}</a>`;
 }
 
-function updateStats() {
-    try {
-        const storedData = localStorage.getItem('participants');
-        participants = storedData ? JSON.parse(storedData) : [];
+function listenToParticipants() {
+    const firebaseStatus = document.getElementById('firebaseStatus');
+    
+    db.collection("participants").onSnapshot((querySnapshot) => {
+        firebaseStatus.textContent = '🟢 Firebase 실시간 연결됨';
+        firebaseStatus.style.color = 'green';
         
-        const uniqueParticipants = participants.filter((participant, index, self) => 
-            index === self.findIndex(p => p.deviceId === participant.deviceId)
-        );
+        const participants = [];
+        querySnapshot.forEach((doc) => {
+            participants.push(doc.data());
+        });
         
-        const totalParticipants = uniqueParticipants.length;
-        const fiveMinutesAgo = Date.now() - (5 * 60 * 1000);
-        const recentParticipants = uniqueParticipants.filter(p => {
-            return new Date(p.timestamp).getTime() > fiveMinutesAgo;
-        }).length;
-        
-        document.getElementById('totalParticipants').textContent = totalParticipants;
-        document.getElementById('recentParticipants').textContent = recentParticipants;
-        
-    } catch (error) {
-        console.error('❌ 통계 업데이트 실패:', error);
-        document.getElementById('totalParticipants').textContent = '0';
-        document.getElementById('recentParticipants').textContent = '0';
-    }
+        updateStats(participants);
+
+    }, (error) => {
+        firebaseStatus.textContent = '🔴 Firebase 연결 실패';
+        firebaseStatus.style.color = 'red';
+        console.error("Firebase 데이터 수신 오류: ", error);
+    });
 }
 
-function forceRefreshStats() {
-    updateStats();
-    // 시각적 피드백
-    const button = document.querySelector('button[onclick="forceRefreshStats()"]');
-    if (button) {
-        const originalText = button.innerHTML;
-        button.innerHTML = '✅ 새로고침됨';
-        button.style.background = '#27ae60';
-        setTimeout(() => {
-            button.innerHTML = originalText;
-            button.style.background = '#e74c3c';
-        }, 2000);
-    }
+function updateStats(participants) {
+    const totalParticipants = participants.length;
+    const fiveMinutesAgo = Date.now() - (5 * 60 * 1000);
+    
+    const recentParticipants = participants.filter(p => {
+        return new Date(p.timestamp).getTime() > fiveMinutesAgo;
+    }).length;
+
+    document.getElementById('totalParticipants').textContent = totalParticipants;
+    document.getElementById('recentParticipants').textContent = recentParticipants;
 }
 
 // 초기화
-document.addEventListener('DOMContentLoaded', function() {
-    eventName = localStorage.getItem('eventName') || '서울아산병원 소통 감수성 퀴즈';
-    document.getElementById('eventName').value = eventName;
-    generateQR();
-    updateStats();
-    
-    // 5초마다 통계 업데이트
-    setInterval(updateStats, 5000);
-});
-
-// 다른 탭에서 참여자 등록 시 스토리지 변경 감지
-window.addEventListener('storage', function(e) {
-    if (e.key === 'participants') {
-        updateStats();
+document.addEventListener('DOMContentLoaded', () => {
+    const savedEventName = localStorage.getItem('eventName');
+    if (savedEventName) {
+        document.getElementById('eventName').value = savedEventName;
     }
+    generateQR();
+    listenToParticipants();
 });

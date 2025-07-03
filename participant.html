@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>서울아산병원 소통 감수성 퀴즈 - 참여</title>
     <link rel="stylesheet" href="styles.css">
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 </head>
 <body>
     <div class="container">
@@ -13,23 +15,7 @@
         <div id="autoRegister" class="auto-register">
             <h2>참여 확인 중...</h2>
             <div class="loading-spinner"></div>
-            <p>잠시만 기다려주세요</p>
-        </div>
-
-        <div id="welcomeMessage" class="welcome-message" style="display: none;">
-            <h2>참여 완료!</h2>
-            <p>익명으로 참여가 확인되었습니다.</p>
-            <div class="quiz-link" style="margin-top: 30px;">
-                <button onclick="goToQuiz()" class="quiz-btn" style="font-size: 24px; padding: 20px 40px; width: 100%; max-width: 300px;">퀴즈에 도전하기 🧠</button>
-            </div>
-        </div>
-
-        <div id="alreadyJoined" class="already-joined" style="display: none;">
-            <h2>이미 참여하셨습니다!</h2>
-            <p>익명으로 참여가 확인되었습니다.</p>
-            <div class="quiz-link" style="margin-top: 30px;">
-                <button onclick="goToQuiz()" class="quiz-btn" style="font-size: 24px; padding: 20px 40px; width: 100%; max-width: 300px;">퀴즈에 도전하기 🧠</button>
-            </div>
+            <p>잠시만 기다려주세요. 퀴즈 페이지로 이동합니다.</p>
         </div>
     </div>
 
