@@ -56,7 +56,6 @@ const quizQuestions = [
 ];
 
 let currentQuestionIndex = 0;
-let userAnswers = [];
 let score = 0;
 
 function getEventNameFromUrl() {
@@ -64,25 +63,45 @@ function getEventNameFromUrl() {
     return urlParams.get('event') || '행사';
 }
 
-function startQuiz() {
-    // 쿠폰 사용 여부 확인
+function generateDeviceId() {
+    let deviceId = localStorage.getItem('deviceId');
+    if (!deviceId) {
+        const navigatorInfo = window.navigator;
+        const screenInfo = window.screen;
+        let fingerprint = navigatorInfo.userAgent +
+            '|' + navigatorInfo.language +
+            '|' + screenInfo.colorDepth +
+            '|' + screenInfo.width + 'x' + screenInfo.height +
+            '|' + new Date().getTimezoneOffset();
+
+        let hash = 0;
+        for (let i = 0; i < fingerprint.length; i++) {
+            const char = fingerprint.charCodeAt(i);
+            hash = ((hash << 5) - hash) + char;
+            hash = hash & hash;
+        }
+        deviceId = 'dev-' + Math.abs(hash).toString(16);
+        localStorage.setItem('deviceId', deviceId);
+    }
+    return deviceId;
+}
+
+function checkIfCouponUsed() {
     const deviceId = generateDeviceId();
-    const hasUsedCoupon = checkIfCouponUsed(deviceId);
-    
-    if (hasUsedCoupon) {
-        alert('이미 퀴즈를 완료하고 쿠폰을 사용하셨습니다.\n추가 참여는 불가능합니다.');
-        // 참여자 페이지로 돌아가기
-        const eventName = getEventNameFromUrl();
-        window.location.href = 'participant.html?event=' + encodeURIComponent(eventName);
+    const coupons = JSON.parse(localStorage.getItem('coupons')) || [];
+    return coupons.some(c => c.deviceId === deviceId && c.used);
+}
+
+function startQuiz() {
+    if (checkIfCouponUsed()) {
+        alert('이미 퀴즈를 완료하고 쿠폰을 사용하셨습니다.');
         return;
     }
     
     document.getElementById('quizStart').style.display = 'none';
     document.getElementById('quizProgress').style.display = 'block';
     
-    // 퀴즈 초기화
     currentQuestionIndex = 0;
-    userAnswers = [];
     score = 0;
     
     displayQuestion();
@@ -91,87 +110,32 @@ function startQuiz() {
 function displayQuestion() {
     const question = quizQuestions[currentQuestionIndex];
     
-    // 진행 상황 업데이트
     document.getElementById('currentQuestion').textContent = currentQuestionIndex + 1;
     document.getElementById('totalQuestions').textContent = quizQuestions.length;
-    
-    const progress = ((currentQuestionIndex + 1) / quizQuestions.length) * 100;
-    document.getElementById('progressFill').style.width = progress + '%';
-    
-    // 질문 표시
+    document.getElementById('progressFill').style.width = ((currentQuestionIndex + 1) / quizQuestions.length) * 100 + '%';
     document.getElementById('questionText').textContent = question.question;
     
-    // 답안 선택지 생성
     const answerOptions = document.getElementById('answerOptions');
     answerOptions.innerHTML = '';
     
     question.options.forEach((option, index) => {
         const optionDiv = document.createElement('div');
         optionDiv.className = 'answer-option';
-        optionDiv.innerHTML = `
-            <input type="radio" id="option${index}" name="answer" value="${index}" style="display: none;">
-            <label for="option${index}" class="option-label">${option}</label>
-        `;
-        
-        // 터치 반응성 향상을 위한 이벤트 리스너 추가
-        optionDiv.addEventListener('click', function(e) {
-            e.preventDefault();
-            e.stopPropagation();
-            selectOption(index);
+        optionDiv.innerHTML = `<label><input type="radio" name="answer" value="${index}"> ${option}</label>`;
+        optionDiv.addEventListener('click', () => {
+            document.getElementById('nextBtn').disabled = false;
         });
-        
-        optionDiv.addEventListener('touchend', function(e) {
-            e.preventDefault();
-            e.stopPropagation();
-            selectOption(index);
-        });
-        
         answerOptions.appendChild(optionDiv);
     });
     
-    // 다음 버튼 비활성화
     document.getElementById('nextBtn').disabled = true;
 }
 
-function selectAnswer() {
-    document.getElementById('nextBtn').disabled = false;
-}
-
-function selectOption(index) {
-    // 모든 옵션의 선택 상태 초기화
-    const allOptions = document.querySelectorAll('.answer-option');
-    allOptions.forEach(option => {
-        option.classList.remove('selected');
-        const radio = option.querySelector('input[type="radio"]');
-        radio.checked = false;
-    });
-    
-    // 선택된 옵션 활성화
-    const selectedOption = document.querySelector(`#option${index}`);
-    const selectedDiv = selectedOption.closest('.answer-option');
-    
-    selectedOption.checked = true;
-    selectedDiv.classList.add('selected');
-    
-    // 다음 버튼 활성화
-    document.getElementById('nextBtn').disabled = false;
-    
-    // 선택 피드백 (진동)
-    if (navigator.vibrate) {
-        navigator.vibrate(50);
-    }
-}
-
 function nextQuestion() {
-    // 선택된 답안 저장
     const selectedAnswer = document.querySelector('input[name="answer"]:checked');
     if (selectedAnswer) {
-        const answerIndex = parseInt(selectedAnswer.value);
-        userAnswers.push(answerIndex);
-        
-        // 정답 체크
-        if (answerIndex === quizQuestions[currentQuestionIndex].correct) {
-            score += 20; // 문제당 20점
+        if (parseInt(selectedAnswer.value) === quizQuestions[currentQuestionIndex].correct) {
+            score += 20;
         }
     }
     
@@ -187,7 +151,6 @@ function nextQuestion() {
 function showResult() {
     document.getElementById('quizProgress').style.display = 'none';
     document.getElementById('quizResult').style.display = 'block';
-    
     document.getElementById('finalScore').textContent = score;
     
     if (score >= 60) {
@@ -201,155 +164,39 @@ function showResult() {
 
 function retryQuiz() {
     document.getElementById('quizResult').style.display = 'none';
-    document.getElementById('quizStart').style.display = 'block';
-}
-
-function checkIfCouponUsed(deviceId) {
-    // 해당 디바이스로 발급된 쿠폰 중 사용된 것이 있는지 확인
-    const coupons = JSON.parse(localStorage.getItem('coupons')) || [];
-    const deviceCoupons = coupons.filter(c => c.deviceId === deviceId);
-    
-    // 사용된 쿠폰이 하나라도 있으면 true
-    return deviceCoupons.some(c => c.used === true);
+    startQuiz();
 }
 
 function getCoupon() {
-    // 디바이스 ID 생성 (participant.js와 동일한 방식)
     const deviceId = generateDeviceId();
     const eventName = getEventNameFromUrl();
     
-    // 쿠폰 사용 여부 재확인 (혹시 모를 동시성 문제 방지)
-    const hasUsedCoupon = checkIfCouponUsed(deviceId);
-    if (hasUsedCoupon) {
-        alert('이미 쿠폰을 사용하셨습니다.\n추가 쿠폰 발급은 불가능합니다.');
-        window.location.href = 'participant.html?event=' + encodeURIComponent(eventName);
+    let coupons = JSON.parse(localStorage.getItem('coupons')) || [];
+    const existingCoupon = coupons.find(c => c.deviceId === deviceId);
+
+    if (existingCoupon) {
+        window.location.href = `coupon.html?code=${existingCoupon.couponCode}&event=${encodeURIComponent(eventName)}`;
         return;
     }
-    
-    // 쿠폰 정보 생성
+
+    const couponCode = 'COUPON-' + deviceId.substring(4, 12) + '-' + Date.now().toString().slice(-4);
     const coupon = {
-        id: Date.now(),
+        couponCode: couponCode,
         deviceId: deviceId,
         score: score,
         timestamp: new Date().toISOString(),
         eventName: eventName,
-        couponCode: 'COUPON_' + deviceId.substring(0, 8) + '_' + Date.now().toString().substring(-4),
         used: false
     };
     
-    // 쿠폰 저장
-    let coupons = JSON.parse(localStorage.getItem('coupons')) || [];
     coupons.push(coupon);
     localStorage.setItem('coupons', JSON.stringify(coupons));
     
-    // 쿠폰 페이지로 이동
-    window.location.href = `coupon.html?code=${coupon.couponCode}&event=${encodeURIComponent(eventName)}`;
+    window.location.href = `coupon.html?code=${couponCode}&event=${encodeURIComponent(eventName)}`;
 }
 
-function generateDeviceId() {
-    // 기존 저장된 디바이스 ID가 있는지 확인 (participant.js와 동일)
-    const storedId = localStorage.getItem('deviceId');
-    if (storedId) {
-        console.log('퀴즈: 기존 디바이스 ID 사용:', storedId);
-        return storedId;
-    }
-    
-    // 브라우저 고유 정보로 디바이스 ID 생성 (participant.js와 동일)
-    const canvas = document.createElement('canvas');
-    const ctx = canvas.getContext('2d');
-    ctx.textBaseline = 'top';
-    ctx.font = '14px Arial';
-    ctx.fillText('Seoul Asan Medical Center Device ID', 2, 2);
-    
-    const deviceInfo = [
-        navigator.userAgent,
-        navigator.language,
-        navigator.languages ? navigator.languages.join(',') : '',
-        screen.width + 'x' + screen.height,
-        screen.colorDepth,
-        new Date().getTimezoneOffset(),
-        navigator.platform,
-        navigator.cookieEnabled,
-        typeof navigator.doNotTrack !== 'undefined' ? navigator.doNotTrack : '',
-        canvas.toDataURL()
-    ].join('|');
-    
-    // 향상된 해시 생성
-    let hash = 0;
-    for (let i = 0; i < deviceInfo.length; i++) {
-        const char = deviceInfo.charCodeAt(i);
-        hash = ((hash << 5) - hash) + char;
-        hash = hash & hash;
-    }
-    
-    // 추가 랜덤성 (첫 방문시에만)
-    const randomSalt = Math.random().toString(36).substring(2, 8);
-    hash = hash + randomSalt.split('').reduce((a, b) => a + b.charCodeAt(0), 0);
-    
-    const deviceId = Math.abs(hash).toString(36).toUpperCase();
-    
-    // 디바이스 ID를 localStorage에 영구 저장
-    localStorage.setItem('deviceId', deviceId);
-    console.log('퀴즈: 새 디바이스 ID 생성 및 저장:', deviceId);
-    
-    return deviceId;
-}
-
-// 페이지 로드 시 초기화
 document.addEventListener('DOMContentLoaded', function() {
     const eventName = getEventNameFromUrl();
     document.getElementById('quizTitle').textContent = eventName + ' 퀴즈';
     document.title = eventName + ' 퀴즈';
-    
-    // 페이지 로드 시 쿠폰 사용 여부 확인
-    const deviceId = generateDeviceId();
-    const hasUsedCoupon = checkIfCouponUsed(deviceId);
-    
-    if (hasUsedCoupon) {
-        // 쿠폰 사용 후 접근 시 알림 후 참여자 페이지로 리다이렉트
-        alert('이미 퀴즈를 완료하고 쿠폰을 사용하셨습니다.\n추가 참여는 불가능합니다.');
-        window.location.href = 'participant.html?event=' + encodeURIComponent(eventName);
-        return;
-    }
-    
-    // 뒤로가기 방지 설정
-    preventBackAfterCouponUse();
 });
-
-// 쿠폰 사용 후 뒤로가기 방지
-function preventBackAfterCouponUse() {
-    const deviceId = generateDeviceId();
-    
-    // 주기적으로 쿠폰 사용 상태 확인
-    const checkInterval = setInterval(function() {
-        const hasUsedCoupon = checkIfCouponUsed(deviceId);
-        
-        if (hasUsedCoupon) {
-            // 쿠폰 사용이 감지되면 뒤로가기 방지 활성화
-            setupBackPrevention();
-            clearInterval(checkInterval);
-        }
-    }, 1000);
-}
-
-// 뒤로가기 방지 설정
-function setupBackPrevention() {
-    // 히스토리 조작
-    if (window.history && window.history.pushState) {
-        window.history.pushState('quizCompleted', null, window.location.href);
-        
-        window.addEventListener('popstate', function(event) {
-            window.history.pushState('quizCompleted', null, window.location.href);
-            alert('퀴즈 참여가 완료되어 이전 페이지로 돌아갈 수 없습니다.');
-            return false;
-        });
-    }
-    
-    // 페이지 떠나기 방지
-    window.addEventListener('beforeunload', function(event) {
-        const message = '퀴즈 참여가 완료되어 페이지를 떠날 수 없습니다.';
-        event.preventDefault();
-        event.returnValue = message;
-        return message;
-    });
-}

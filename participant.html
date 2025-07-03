@@ -5,8 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>서울아산병원 소통 감수성 퀴즈 - 참여</title>
     <link rel="stylesheet" href="styles.css">
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 </head>
 <body>
     <div class="container">
@@ -21,21 +19,14 @@
         <div id="welcomeMessage" class="welcome-message" style="display: none;">
             <h2>참여 완료!</h2>
             <p>익명으로 참여가 확인되었습니다.</p>
-            <div class="participant-info" style="display: none;">
-                <p><strong>참여 시간:</strong> <span id="registrationTime"></span></p>
-                <p><strong>고유 ID:</strong> <span id="anonymousId"></span></p>
-            </div>
             <div class="quiz-link" style="margin-top: 30px;">
                 <button onclick="goToQuiz()" class="quiz-btn" style="font-size: 24px; padding: 20px 40px; width: 100%; max-width: 300px;">퀴즈에 도전하기 🧠</button>
             </div>
         </div>
 
         <div id="alreadyJoined" class="already-joined" style="display: none;">
-            <h2>참여 완료!</h2>
+            <h2>이미 참여하셨습니다!</h2>
             <p>익명으로 참여가 확인되었습니다.</p>
-            <div class="participant-info" style="display: none;">
-                <p><strong>최초 참여 시간:</strong> <span id="firstJoinTime"></span></p>
-            </div>
             <div class="quiz-link" style="margin-top: 30px;">
                 <button onclick="goToQuiz()" class="quiz-btn" style="font-size: 24px; padding: 20px 40px; width: 100%; max-width: 300px;">퀴즈에 도전하기 🧠</button>
             </div>
